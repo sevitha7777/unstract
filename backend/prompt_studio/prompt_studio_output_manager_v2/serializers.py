@@ -55,4 +55,12 @@ class PromptStudioOutputSerializer(AuditSerializer):
         except json.JSONDecodeError:
             # Convert the old value of data["context"] to a list
             data["context"] = [data["context"]]
+            
+        # Add confidence score summary
+        confidence_data = data.get("confidence_data")
+        if confidence_data:
+            data["confidence_score"] = confidence_data.get("overall_confidence", 0.0)
+        else:
+            data["confidence_score"] = 0.0
+            
         return data

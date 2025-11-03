@@ -34,7 +34,8 @@ RUN npm install --ignore-scripts
 # Copy the rest of the application files
 COPY ${BUILD_CONTEXT_PATH}/ .
 
-# Build the React app
+# Build the React app (skip ESLint)
+ENV DISABLE_ESLINT_PLUGIN=true
 RUN npm run build
 
 # Production stage

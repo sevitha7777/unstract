@@ -236,6 +236,17 @@ class AnswerPromptService:
             confidence_data = completion.get(PSKeys.CONFIDENCE_DATA)
             line_numbers = completion.get(PSKeys.LINE_NUMBERS, [])
             whisper_hash = completion.get(PSKeys.WHISPER_HASH, "")
+            
+            # Calculate confidence if not provided by LLM
+            if not confidence_data:
+                from unstract.prompt_service.utils.confidence_calculator import ConfidenceCalculator
+                token_usage = completion.get("usage", {})
+                confidence_data = ConfidenceCalculator.calculate_confidence(
+                    output=answer,
+                    prompt_type=prompt_type,
+                    context=prompt if len(prompt) < 1000 else prompt[:1000],  # Limit context size
+                    token_usage=token_usage
+                )
             if metadata is not None and prompt_key:
                 metadata.setdefault(PSKeys.HIGHLIGHT_DATA, {})[prompt_key] = (
                     highlight_data

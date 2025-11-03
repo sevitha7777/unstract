@@ -37,6 +37,7 @@ import { DisplayPromptResult } from "./DisplayPromptResult";
 import usePromptOutput from "../../../hooks/usePromptOutput";
 import { PromptRunTimer } from "./PromptRunTimer";
 import { PromptRunCost } from "./PromptRunCost";
+import { ConfidenceScore } from "../confidence-score/ConfidenceScore";
 import { useState } from "react";
 
 let TableOutput;
@@ -377,6 +378,10 @@ function PromptOutput({
                         isLoading={isPromptLoading}
                       />
                     </Typography.Text>
+                    <ConfidenceScore
+                      confidenceData={promptOutputData?.confidence_data}
+                      isLoading={isPromptLoading}
+                    />
                   </div>
                   <div className="prompt-info">
                     <div>
