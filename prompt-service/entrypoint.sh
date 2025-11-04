@@ -37,5 +37,8 @@ else
     echo "Running in production mode"
 fi
 
+# Set required environment variables
+export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+
 # Start Gunicorn
 .venv/bin/gunicorn "${gunicorn_args[@]}" unstract.prompt_service.run:app

@@ -14,7 +14,7 @@ const useUserSession = () => {
       const timestamp = new Date().getTime();
       const requestOptions = {
         method: "GET",
-        url: `/api/v1/session?q=${timestamp}`,
+        url: `/api/v1/session/?q=${timestamp}`,
       };
       const res = await axios(requestOptions);
       return res.data;

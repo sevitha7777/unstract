@@ -19,7 +19,8 @@ dependencies = [
     "redis>=5.0.3,<5.3",
     "unstract-core",
     "unstract-flags",
-    "unstract-sdk1[aws,gcs,azure]"
+    "unstract-sdk1[aws,gcs,azure]",
+    "gunicorn>=23.0.0",
 ]
 
 [tool.uv.sources]

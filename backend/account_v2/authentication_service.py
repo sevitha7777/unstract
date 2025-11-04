@@ -63,7 +63,7 @@ class AuthenticationService:
                 {UserLoginTemplate.ERROR_PLACE_HOLDER: str(e)},
             )
         if self.authenticate_and_login(request, username, password):
-            return redirect(settings.WEB_APP_ORIGIN_URL)
+            return redirect(f"{settings.WEB_APP_ORIGIN_URL}/mock_org/tools")
 
         return self.render_login_page_with_error(request, ErrorMessage.USER_LOGIN_ERROR)
 

@@ -18,6 +18,10 @@ def register_connectors(connectors: dict[str, Any]) -> None:
         connector_path = os.path.join(current_directory, connector)
         # Check if the item is a directory and not a special directory like __pycache__
         if os.path.isdir(connector_path) and not connector.startswith("__"):
+            # Skip MSSQL connector due to pymssql dependency issues
+            if connector == "mssql":
+                logger.warning(f"Skipping {connector} connector due to dependency issues")
+                continue
             try:
                 full_module_path = f"{package}.{connector}"
                 module = import_module(full_module_path)

@@ -2,12 +2,17 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
+import axios from "axios";
 
 import { GenericLoader } from "./components/generic-loader/GenericLoader";
 import { LazyLoader } from "./components/widgets/lazy-loader/LazyLoader.jsx";
 import { SocketProvider } from "./helpers/SocketContext.js";
 import "./index.css";
 import config from "./config.js";
+
+// Configure axios base URL and credentials
+axios.defaults.baseURL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+axios.defaults.withCredentials = true;
 
 const enablePosthog = process.env.REACT_APP_ENABLE_POSTHOG;
 if (enablePosthog !== "false") {

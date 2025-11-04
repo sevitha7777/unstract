@@ -94,12 +94,12 @@ function useSessionValid() {
         navigate("/setOrg", { state: orgs });
         return;
       }
-      const orgId = signedInOrgId || orgs[0].id;
+      const orgId = signedInOrgId || orgs[0]?.id || "1";
       const csrfToken = Cookies.get("csrftoken");
 
       // API to set the organization and get the user details
       requestOptions["method"] = "POST";
-      requestOptions["url"] = `/api/v1/organization/${orgId}/set`;
+      requestOptions["url"] = `/api/v1/organization/${orgId}/set/`;
       requestOptions["headers"] = {
         "X-CSRFToken": csrfToken,
       };

@@ -20,8 +20,10 @@ from django.conf import settings
 from django.conf.urls import *  # noqa: F401, F403
 from django.conf.urls.static import static
 from django.urls import include, path
+from backend.adapter_instance_view import adapter_instance_view
 
 urlpatterns = [
+    path("adapter_instance", adapter_instance_view, name="adapter_instance"),
     path("", include("account_v2.urls")),
     # Connector OAuth
     path("", include("connector_auth_v2.urls")),

@@ -511,7 +511,9 @@ const pollForCompletion = (
   }
 
   const recursivePoll = () => {
-    return makeApiRequest(requestOptions)
+    // Ensure method stays as POST for polling
+    const pollOptions = { ...requestOptions, method: requestOptions.method || "POST" };
+    return makeApiRequest(pollOptions)
       .then((response) => {
         if (response?.data?.status === "pending") {
           return new Promise((resolve) =>

@@ -72,6 +72,7 @@ WEB_APP_ORIGIN_URL = os.environ.get("WEB_APP_ORIGIN_URL", "http://localhost:3000
 parsed_url = urlparse(WEB_APP_ORIGIN_URL)
 WEB_APP_ORIGIN_URL_WITH_WILD_CARD = f"{parsed_url.scheme}://*.{parsed_url.netloc}"
 CORS_ALLOWED_ORIGINS = [WEB_APP_ORIGIN_URL]
+CORS_ALLOW_CREDENTIALS = True
 
 DJANGO_APP_BACKEND_URL = os.environ.get("DJANGO_APP_BACKEND_URL", "http://localhost:8000")
 INTERNAL_SERVICE_API_KEY = os.environ.get("INTERNAL_SERVICE_API_KEY")
@@ -516,6 +517,9 @@ WHITELISTED_PATHS.append(f"/{API_DEPLOYMENT_PATH_PREFIX}")
 
 # Whitelisting health check API
 WHITELISTED_PATHS.append("/health")
+
+# Whitelisting adapter_instance for SDK access
+WHITELISTED_PATHS.append("/adapter_instance")
 
 # These path will work without organization in request
 ORGANIZATION_MIDDLEWARE_WHITELISTED_PATHS = []

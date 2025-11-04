@@ -15,6 +15,7 @@ from django.http import Http404, JsonResponse
 from django.urls import include, path
 from django.views.decorators.http import require_http_methods
 from utils.websocket_views import emit_websocket
+from backend.adapter_instance_view import adapter_instance_view
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +177,8 @@ def test_middleware_debug(request):
 
 # Internal API URL patterns - OSS Base
 urlpatterns = [
+    # SDK adapter instance endpoint
+    path("adapter_instance", adapter_instance_view, name="adapter_instance_internal"),
     # Internal API root and utilities
     path("", internal_api_root, name="internal_api_root"),
     path("debug/", test_middleware_debug, name="test_middleware_debug"),

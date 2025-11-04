@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 
 function ConfidenceScore({ confidenceData, isLoading = false }) {
   // Debug: Always show something
-  console.log('ConfidenceScore rendered with:', { confidenceData, isLoading });
+  console.log("ConfidenceScore rendered with:", { confidenceData, isLoading });
   
   if (isLoading) {
     return (
@@ -20,7 +20,10 @@ function ConfidenceScore({ confidenceData, isLoading = false }) {
   ) {
     return (
       <Typography.Text className="prompt-cost-item">
-        Confidence: <span style={{ color: "#8c8c8c" }}>N/A (Debug: {JSON.stringify(confidenceData)})</span>
+        Confidence:{" "}
+        <span style={{ color: "#8c8c8c" }}>
+          N/A (Debug: {JSON.stringify(confidenceData)})
+        </span>
       </Typography.Text>
     );
   }
@@ -76,6 +79,7 @@ function ConfidenceScore({ confidenceData, isLoading = false }) {
     <Typography.Text className="prompt-cost-item">
       Confidence:{" "}
       <Tooltip title={tooltipContent} placement="top">
+        {" "}
         <span
           style={{
             color: getColor(score),

@@ -62,6 +62,22 @@ class UserSessionInfo:
     role: str
     provider: str
     is_staff: bool = False
+    adapters: list[str] | None = None
+    name: str | None = None
+    display_name: str | None = None
+    family_name: str | None = None
+    picture: str | None = None
+    orgId: str | None = None
+    orgName: str | None = None
+    csrfToken: str | None = None
+    zCode: str | None = None
+    isAdmin: bool = False
+    logEventsId: str | None = None
+    allOrganization: list | None = None
+    isPlatformAdmin: bool = False
+    loginOnboardingMessage: str | None = None
+    promptOnboardingMessage: str | None = None
+    flags: dict | None = None
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> "UserSessionInfo":

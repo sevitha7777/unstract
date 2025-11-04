@@ -19,8 +19,10 @@ from django.conf.urls import *  # noqa: F401, F403
 from django.urls import include, path
 
 from backend.constants import UrlPathConstants
+from backend.adapter_instance_view import adapter_instance_view
 
 urlpatterns = [
+    path("adapter_instance", adapter_instance_view, name="adapter_instance"),
     path("", include("tenant_account.urls")),
     path("", include("prompt.urls")),
     path("", include("project.urls")),

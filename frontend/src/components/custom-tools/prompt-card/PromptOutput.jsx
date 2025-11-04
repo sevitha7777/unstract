@@ -379,7 +379,7 @@ function PromptOutput({
                       />
                     </Typography.Text>
                     <ConfidenceScore
-                      confidenceData={promptOutputData?.confidence_data}
+                      confidenceData={promptOutputData?.confidenceData}
                       isLoading={isPromptLoading}
                     />
                   </div>

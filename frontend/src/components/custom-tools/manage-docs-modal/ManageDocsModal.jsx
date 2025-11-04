@@ -636,7 +636,7 @@ function ManageDocsModal({
       });
 
       const data = info.file.response?.data;
-      const doc = data?.length > 0 ? data[0] : {};
+      const doc = (data && data.length > 0) ? data[0] : {};
       const newListOfDocs = [...listOfDocs];
       newListOfDocs.push(doc);
       const body = {
@@ -655,7 +655,7 @@ function ManageDocsModal({
       setIsUploading(false);
       setAlertDetails({
         type: "error",
-        content: info?.file?.response?.errors[0]?.detail || "Failed to Upload",
+        content: info?.file?.response?.errors?.[0]?.detail || "Failed to Upload",
       });
     }
   };
@@ -744,10 +744,11 @@ function ManageDocsModal({
             <div>
               <Upload.Dragger
                 name="file"
-                action={`/api/v1/unstract/${sessionDetails?.orgId}/prompt-studio/file/${details?.tool_id}`}
+                action={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/v1/unstract/${sessionDetails?.orgId}/prompt-studio/file/${details?.tool_id}`}
                 headers={{
                   "X-CSRFToken": sessionDetails.csrfToken,
                 }}
+                withCredentials={true}
                 onChange={handleUploadChange}
                 disabled={isUploading || !defaultLlmProfile}
                 showUploadList={false}

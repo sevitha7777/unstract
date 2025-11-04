@@ -14,15 +14,29 @@ from utils.constants import ExecutionLogConstants
 
 logger = logging.getLogger(__name__)
 
-sio = socketio.Server(
-    # Allowed values: {threading, eventlet, gevent, gevent_uwsgi}
-    async_mode="threading",
-    cors_allowed_origins=settings.CORS_ALLOWED_ORIGINS,
-    logger=False,
-    engineio_logger=False,
-    always_connect=True,
-    client_manager=socketio.KombuManager(url=settings.SOCKET_IO_MANAGER_URL),
-)
+# Configure SocketIO server with appropriate transports
+if settings.DEBUG:
+    # Development: polling only to avoid WebSocket issues
+    sio = socketio.Server(
+        async_mode="threading",
+        cors_allowed_origins=settings.CORS_ALLOWED_ORIGINS,
+        logger=False,
+        engineio_logger=False,
+        always_connect=True,
+        transports=['polling'],
+        client_manager=socketio.KombuManager(url=settings.SOCKET_IO_MANAGER_URL),
+    )
+else:
+    # Production: WebSocket with polling fallback
+    sio = socketio.Server(
+        async_mode="threading",
+        cors_allowed_origins=settings.CORS_ALLOWED_ORIGINS,
+        logger=False,
+        engineio_logger=False,
+        always_connect=True,
+        transports=['websocket', 'polling'],
+        client_manager=socketio.KombuManager(url=settings.SOCKET_IO_MANAGER_URL),
+    )
 
 redis_conn = redis.Redis(
     host=settings.REDIS_HOST,
