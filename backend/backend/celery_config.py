@@ -31,3 +31,22 @@ class CeleryConfig:
     beat_scheduler = "django_celery_beat.schedulers:DatabaseScheduler"
 
     task_acks_late = True
+    
+    # Connection retry and stability settings
+    broker_connection_retry_on_startup = True
+    broker_connection_retry = True
+    broker_connection_max_retries = 10
+    broker_heartbeat = 60
+    
+    # Worker settings for connection loss handling
+    worker_cancel_long_running_tasks_on_connection_loss = True
+    task_reject_on_worker_lost = True
+    
+    # Prefetch and concurrency settings
+    worker_prefetch_multiplier = 1
+    task_always_eager = False
+    
+    # Connection pool settings
+    broker_pool_limit = 10
+    broker_connection_timeout = 30
+    broker_connection_retry_delay = 5

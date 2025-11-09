@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: runtime-config-script
+  namespace: medical-claims
+data:
+  generate-runtime-config.sh: |
+    #!/bin/sh
+    
+    # Generate the runtime-config.js file with the current environment variables
+    cat > /usr/share/nginx/html/config/runtime-config.js << EOF
+    // This file is auto-generated at runtime. Do not modify manually.
+    window.RUNTIME_CONFIG = {
+      faviconPath: "${REACT_APP_FAVICON_PATH}",
+      logoUrl: "${REACT_APP_CUSTOM_LOGO_URL}",
+      backendUrl: "${REACT_APP_API_URL}",
+      apiUrl: "${REACT_APP_API_URL}"
+    };
+    EOF
+    
+    # Make sure nginx can read the file
+    chmod 755 /usr/share/nginx/html/config/runtime-config.js
+    
+    echo "Runtime configuration generated successfully with backend URL: ${REACT_APP_API_URL:-<not set>}"

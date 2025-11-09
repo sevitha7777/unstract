@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+import os
 from account_v2.admin import admin
 from django.conf import settings
 from django.conf.urls import *  # noqa: F401, F403
@@ -29,13 +30,15 @@ urlpatterns = [
     path("", include("connector_auth_v2.urls")),
     # Docs
     path("", include("docs.urls")),
-    # Feature flags
-    path("flags/", include("feature_flag.urls")),
     # Pipeline
     path("pipeline/", include("pipeline_v2.public_api_urls")),
     # health checks
     path("", include("health.urls")),
 ]
+
+# Conditionally include feature flags only if flipt service is available
+if os.getenv("FLIPT_SERVICE_AVAILABLE", "false").lower() == "true":
+    urlpatterns.append(path("flags/", include("feature_flag.urls")))
 if settings.ADMIN_ENABLED:
     # Admin URLs
     urlpatterns += [

@@ -25,6 +25,9 @@ dependencies = [
     "jsonschema",
     "python-magic~=0.4.27",
     "python-dotenv==1.0.1",
+    # # Protobuf dependencies - fix conflicts
+    "protobuf>=4.21.0,<5.0.0",
+    "googleapis-common-protos>=1.60.0,<2",
     # # Adapter changes
     "tiktoken~=0.9.0",
     "litellm~=1.76.0",

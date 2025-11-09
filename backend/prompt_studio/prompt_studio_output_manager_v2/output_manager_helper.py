@@ -52,6 +52,10 @@ class OutputManagerHelper:
         Returns:
             list[dict[str, Any]]: List of serialized prompt output data.
         """
+        # Basic validation
+        if not prompts or not document_id or outputs is None:
+            logger.error(f"Invalid input: prompts={len(prompts) if prompts else 0}, document_id={document_id}, outputs_provided={outputs is not None}")
+            return []
 
         def update_or_create_prompt_output(
             prompt: ToolStudioPrompt,
@@ -75,8 +79,8 @@ class OutputManagerHelper:
                     prompt_id=prompt,
                     is_single_pass_extract=is_single_pass_extract,
                     defaults={
-                        "output": output,
-                        "eval_metrics": eval_metrics,
+                        "output": output or "",
+                        "eval_metrics": eval_metrics or [],
                         "context": context,
                         "challenge_data": challenge_data,
                         "highlight_data": highlight_data,
@@ -84,40 +88,32 @@ class OutputManagerHelper:
                     },
                 )
 
-                if success:
-                    logger.info(
-                        f"Created record for prompt_id: {prompt.prompt_id} and "
-                        f"profile {profile_manager.profile_id}"
-                    )
-                else:
-                    logger.info(
-                        f"Updated record for prompt_id: {prompt.prompt_id} and "
-                        f"profile {profile_manager.profile_id}"
-                    )
-
-                args: dict[str, Any] = {
-                    "run_id": run_id,
-                    "output": output,
-                    "eval_metrics": eval_metrics,
-                    "context": context,
-                    "challenge_data": challenge_data,
-                    "highlight_data": highlight_data,
-                    "confidence_data": confidence_data,
-                }
-                PromptStudioOutputManager.objects.filter(
-                    document_manager=document_manager,
-                    tool_id=tool,
-                    profile_manager=profile_manager,
-                    prompt_id=prompt,
-                    is_single_pass_extract=is_single_pass_extract,
-                ).update(**args)
-
-                # Refresh the prompt_output instance to get updated values
-                prompt_output.refresh_from_db()
+                if not success:
+                    # Update existing record
+                    args: dict[str, Any] = {
+                        "run_id": run_id,
+                        "output": output or "",
+                        "eval_metrics": eval_metrics or [],
+                        "context": context,
+                        "challenge_data": challenge_data,
+                        "highlight_data": highlight_data,
+                        "confidence_data": confidence_data,
+                    }
+                    PromptStudioOutputManager.objects.filter(
+                        document_manager=document_manager,
+                        tool_id=tool,
+                        profile_manager=profile_manager,
+                        prompt_id=prompt,
+                        is_single_pass_extract=is_single_pass_extract,
+                    ).update(**args)
+                    prompt_output.refresh_from_db()
 
                 return prompt_output
 
             except Exception as e:
+                import traceback
+                logger.error(f"Error updating prompt output for {prompt.prompt_key}: {e}")
+                logger.error(f"Full traceback: {traceback.format_exc()}")
                 raise AnswerFetchError(f"Error updating prompt output {e}") from e
 
         # List to store serialized results
@@ -134,24 +130,34 @@ class OutputManagerHelper:
         default_profile = OutputManagerHelper.get_default_profile(
             profile_manager_id, tool
         )
-        document_manager = DocumentManager.objects.get(pk=document_id)
+        try:
+            document_manager = DocumentManager.objects.get(pk=document_id)
+        except DocumentManager.DoesNotExist:
+            logger.error(f"DocumentManager with ID {document_id} does not exist")
+            raise AnswerFetchError(f"DocumentManager with ID {document_id} does not exist")
 
         for prompt in prompts:
             if prompt.prompt_type == PSOMKeys.NOTES:
                 continue
 
+            # Get prompt-specific data without modifying the original variables
+            prompt_context = context
+            prompt_highlight_data = highlight_data
+            prompt_confidence_data = confidence_data
+            prompt_challenge_data = challenge_data
+            
             if not is_single_pass_extract:
                 if context:
-                    context = context.get(prompt.prompt_key)
+                    prompt_context = context.get(prompt.prompt_key)
                 if highlight_data:
-                    highlight_data = highlight_data.get(prompt.prompt_key)
+                    prompt_highlight_data = highlight_data.get(prompt.prompt_key)
                 if confidence_data:
-                    confidence_data = confidence_data.get(prompt.prompt_key)
+                    prompt_confidence_data = confidence_data.get(prompt.prompt_key)
                 if challenge_data:
-                    challenge_data = challenge_data.get(prompt.prompt_key)
+                    prompt_challenge_data = challenge_data.get(prompt.prompt_key)
 
-            if challenge_data:
-                challenge_data["file_name"] = metadata.get("file_name")
+            if prompt_challenge_data:
+                prompt_challenge_data["file_name"] = metadata.get("file_name")
 
             # TODO: use enums here
             output = outputs.get(prompt.prompt_key)
@@ -160,6 +166,12 @@ class OutputManagerHelper:
             eval_metrics = outputs.get(f"{prompt.prompt_key}__evaluation", [])
             profile_manager = default_profile
 
+            # Safely serialize context
+            try:
+                context_str = json.dumps(prompt_context) if prompt_context else None
+            except (TypeError, ValueError):
+                context_str = None
+
             # Update or create the prompt output
             prompt_output = update_or_create_prompt_output(
                 prompt=prompt,
@@ -167,17 +179,23 @@ class OutputManagerHelper:
                 output=output,
                 eval_metrics=eval_metrics,
                 tool=tool,
-                context=json.dumps(context),
-                challenge_data=challenge_data,
-                highlight_data=highlight_data,
-                confidence_data=confidence_data,
+                context=context_str,
+                challenge_data=prompt_challenge_data,
+                highlight_data=prompt_highlight_data,
+                confidence_data=prompt_confidence_data,
             )
 
             # Serialize the instance
             serializer = PromptStudioOutputSerializer(prompt_output)
             serialized_data.append(serializer.data)
 
-        return serialized_data
+        try:
+            return serialized_data
+        except Exception as e:
+            import traceback
+            logger.error(f"Unexpected error in handle_prompt_output_update: {e}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            raise
 
     @staticmethod
     def get_default_profile(
@@ -221,40 +239,69 @@ class OutputManagerHelper:
         Returns:
             dict[str, Any]: Formatted JSON response for combined output.
         """
-        # Initialize the result dictionary
         result: dict[str, Any] = {}
-        # Iterate over ToolStudioPrompt records
+        confidence_scores: list[float] = []
+        
+        if not tool_studio_prompts:
+            return result
+            
+        # Get the default profile for the tool
+        try:
+            default_profile = ProfileManager.get_default_llm_profile(
+                tool_studio_prompts[0].tool_id
+            )
+        except DefaultProfileError:
+            # Return empty results for all prompts if no default profile
+            for tool_prompt in tool_studio_prompts:
+                if tool_prompt.prompt_type != PSOMKeys.NOTES:
+                    result[tool_prompt.prompt_key] = ""
+            return result
+        
+        # Process each prompt
         for tool_prompt in tool_studio_prompts:
             if tool_prompt.prompt_type == PSOMKeys.NOTES:
                 continue
-            prompt_id = str(tool_prompt.prompt_id)
-            profile_manager_id = tool_prompt.profile_manager_id
-
-            # If profile_manager is not set, skip this record
-            if not profile_manager_id and not use_default_profile:
-                result[tool_prompt.prompt_key] = ""
-                continue
-
-            if not profile_manager_id:
-                default_profile = ProfileManager.get_default_llm_profile(
-                    tool_prompt.tool_id
-                )
-                profile_manager_id = default_profile.profile_id
+                
+            # Always use the default profile for default output
+            profile_manager_id = default_profile.profile_id
 
             try:
                 queryset = PromptStudioOutputManager.objects.filter(
-                    prompt_id=prompt_id,
-                    profile_manager=profile_manager_id,
+                    prompt_id=tool_prompt,
+                    profile_manager=default_profile,
                     is_single_pass_extract=False,
                     document_manager_id=document_manager_id,
                 )
 
-                if not queryset.exists():
+                if queryset.exists():
+                    output_obj = queryset.first()
+                    result[tool_prompt.prompt_key] = output_obj.output or ""
+                    
+                    # Extract confidence score if available
+                    logger.info(f"Checking confidence for prompt {tool_prompt.prompt_key}: {output_obj.confidence_data}")
+                    if output_obj.confidence_data and isinstance(output_obj.confidence_data, dict):
+                        confidence = output_obj.confidence_data.get('confidence_score')
+                        logger.info(f"Found confidence score for {tool_prompt.prompt_key}: {confidence}")
+                        if confidence is not None:
+                            try:
+                                confidence_scores.append(float(confidence))
+                                logger.info(f"Added confidence score: {confidence}")
+                            except (ValueError, TypeError):
+                                logger.warning(f"Invalid confidence score format: {confidence}")
+                                pass
+                else:
                     result[tool_prompt.prompt_key] = ""
-                    continue
-
-                for output in queryset:
-                    result[tool_prompt.prompt_key] = output.output
-            except ObjectDoesNotExist:
+                    
+            except Exception:
                 result[tool_prompt.prompt_key] = ""
+        
+        # Calculate combined confidence score
+        logger.info(f"Collected confidence scores: {confidence_scores}")
+        if confidence_scores:
+            combined_confidence = sum(confidence_scores) / len(confidence_scores)
+            result['_combined_confidence'] = round(combined_confidence, 2)
+            logger.info(f"Combined confidence calculated: {result['_combined_confidence']}")
+        else:
+            logger.info("No confidence scores found for combined output")
+                
         return result

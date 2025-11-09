@@ -12,11 +12,6 @@ from prompt_studio.prompt_studio_registry_v2.prompt_studio_registry_helper impor
 from tool_instance_v2.exceptions import ToolDoesNotExist
 from unstract.flags.feature_flag import check_feature_flag_status
 
-if check_feature_flag_status("sdk1"):
-    from unstract.sdk1.constants import AdapterTypes
-else:
-    from unstract.sdk.adapters.enums import AdapterTypes
-
 from unstract.tool_registry.dto import Spec, Tool
 from unstract.tool_registry.tool_registry import ToolRegistry
 from unstract.tool_registry.tool_utils import ToolUtils
@@ -70,7 +65,7 @@ class ToolProcessor:
 
     @staticmethod
     def _update_schema_for_adapter_type(
-        schema: Spec, keys: list[str], adapter_type: AdapterTypes, user: User
+        schema: Spec, keys: list[str], adapter_type, user: User
     ) -> None:
         """Helper method to update schema properties for a specific adapter type."""
         if not keys:
@@ -95,6 +90,11 @@ class ToolProcessor:
         Returns:
             None. The `schema` object is updated in-place.
         """
+        if check_feature_flag_status("sdk1"):
+            from unstract.sdk1.constants import AdapterTypes
+        else:
+            from unstract.sdk.adapters.enums import AdapterTypes
+            
         llm_keys = schema.get_llm_adapter_properties_keys()
         embedding_keys = schema.get_embedding_adapter_properties_keys()
         vector_db_keys = schema.get_vector_db_adapter_properties_keys()

@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: enable-pgvector
+  namespace: medical-claims
+spec:
+  template:
+    spec:
+      containers:
+      - name: pg-client
+        image: postgres:15
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: aurora-secrets
+              key: AURORA_PASSWORD
+        command:
+        - psql
+        - -h
+        - aurora-postgres-cluster.cluster-cjgyqoqki9hf.us-east-1.rds.amazonaws.com
+        - -U
+        - postgres
+        - -d
+        - unstract_db
+        - -c
+        - "CREATE EXTENSION IF NOT EXISTS vector;"
+      restartPolicy: Never
+  backoffLimit: 1

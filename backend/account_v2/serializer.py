@@ -18,6 +18,25 @@ class OrganizationSignupSerializer(serializers.Serializer):
         return value
 
 
+class UserSignupSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(min_length=8, write_only=True)
+    full_name = serializers.CharField(required=False, allow_blank=True, max_length=150)
+    organization_name = serializers.CharField(
+        required=False, allow_blank=True, max_length=150
+    )
+    organization_id = serializers.CharField(
+        required=False, allow_blank=True, max_length=30
+    )
+
+    def validate_organization_id(self, value):  # type: ignore
+        if value and not re.match(r"^[a-z0-9_-]+$", value):
+            raise serializers.ValidationError(
+                "organization_code should only contain alphanumeric characters,_ and -."
+            )
+        return value
+
+
 class OrganizationCallbackSerializer(serializers.Serializer):
     id = serializers.CharField(required=False)
 

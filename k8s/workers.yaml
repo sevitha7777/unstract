@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unstract-workers
+  namespace: medical-claims
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: unstract-workers
+  template:
+    metadata:
+      labels:
+        app: unstract-workers
+    spec:
+      serviceAccountName: medical-claims-sa
+      volumes:
+      - name: unstract-files
+        persistentVolumeClaim:
+          claimName: unstract-efs-pvc
+      containers:
+      - name: workers
+        image: 576245601309.dkr.ecr.us-east-1.amazonaws.com/unstract/workers:latest
+        envFrom:
+        - configMapRef:
+            name: unstract-config
+        - secretRef:
+            name: unstract-secrets
+        env:
+        - name: DJANGO_APP_BACKEND_URL
+          value: "http://unstract-backend:8000"
+        - name: INTERNAL_API_BASE_URL
+          value: "http://unstract-backend:8000/internal"
+        - name: CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP
+          value: "true"
+        - name: CELERY_BROKER_CONNECTION_RETRY
+          value: "true"
+        - name: CELERY_BROKER_CONNECTION_MAX_RETRIES
+          value: "10"
+        - name: CELERY_BROKER_HEARTBEAT
+          value: "60"
+        - name: CELERY_WORKER_CANCEL_LONG_RUNNING_TASKS_ON_CONNECTION_LOSS
+          value: "true"
+        - name: CELERY_TASK_REJECT_ON_WORKER_LOST
+          value: "true"
+        volumeMounts:
+        - name: unstract-files
+          mountPath: /tmp/prompt-studio-data
+          subPath: prompt-studio-data
+        - name: unstract-files
+          mountPath: /tmp/workflow-execution
+          subPath: workflow-execution
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          exec:
+            command:
+            - celery
+            - -A
+            - worker
+            - inspect
+            - ping
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - celery
+            - -A
+            - worker
+            - inspect
+            - active
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 2

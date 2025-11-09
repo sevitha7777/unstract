@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unstract-config
+  namespace: medical-claims
+data:
+  # Django Settings
+  DJANGO_SETTINGS_MODULE: "backend.settings.dev"
+  SESSION_COOKIE_SECURE: "false"
+  CSRF_COOKIE_SECURE: "false"
+  DEFAULT_LOG_LEVEL: "INFO"
+  PATH_PREFIX: "api/v1"
+  DJANGO_APP_BACKEND_URL: "http://unstract-backend:8000"
+  
+  # Database Configuration
+  DB_HOST: "aurora-postgres-cluster.cluster-cjgyqoqki9hf.us-east-1.rds.amazonaws.com"
+  DB_PORT: "5432"
+  DB_NAME: "unstract_db"
+  DB_SCHEMA: "unstract"
+  PG_BE_HOST: "aurora-postgres-cluster.cluster-cjgyqoqki9hf.us-east-1.rds.amazonaws.com"
+  PG_BE_PORT: "5432"
+  PG_BE_DATABASE: "unstract_db"
+  PG_BE_SCHEMA: "unstract"
+  PG_BE_USERNAME: "postgres"
+  DB_USERNAME: "postgres"
+  
+  # Platform Service Database Configuration
+  PLATFORM_DB_HOST: "aurora-postgres-cluster.cluster-cjgyqoqki9hf.us-east-1.rds.amazonaws.com"
+  PLATFORM_DB_PORT: "5432"
+  PLATFORM_DB_NAME: "unstract_db"
+  PLATFORM_DB_SCHEMA: "unstract"
+  PLATFORM_DB_USERNAME: "postgres"
+  
+  # Redis Configuration
+  REDIS_HOST: "unstract-redis"
+  REDIS_PORT: "6379"
+  REDIS_PASSWORD: ""
+  REDIS_USER: "default"
+  
+  # RabbitMQ Configuration
+  CELERY_BROKER_BASE_URL: "amqp://unstract-rabbitmq:5672//"
+  CELERY_BROKER_USER: "admin"
+  CELERY_BROKER_PASS: "password"
+  
+  # File Storage
+  PROMPT_STUDIO_FILE_PATH: "/tmp/prompt-studio-data"
+  REMOTE_PROMPT_STUDIO_FILE_PATH: "/tmp/prompt-studio-data"
+  TOOL_REGISTRY_CONFIG_PATH: "/tmp/tool_registry_config"
+  WORKFLOW_EXECUTION_FILE_PATH: "/tmp/workflow-execution"
+  API_EXECUTION_FILE_PATH: "/tmp/workflow-execution"
+  
+  # Auth Configuration
+  DEFAULT_AUTH_USERNAME: "unstract"
+  DEFAULT_AUTH_PASSWORD: "unstract"
+  
+  # Service URLs
+  PLATFORM_SERVICE_HOST: "http://unstract-platform-service"
+  PLATFORM_SERVICE_PORT: "3001"
+  PROMPT_HOST: "http://unstract-prompt-service"
+  PROMPT_PORT: "3003"
+  PLATFORM_SERVICE_URL: "http://unstract-platform-service:3001"
+  PROMPT_SERVICE_URL: "http://unstract-prompt-service:3003"
+  X2TEXT_HOST: "http://unstract-x2text-service"
+  X2TEXT_PORT: "3004"
+  UNSTRACT_RUNNER_HOST: "http://unstract-runner"
+  UNSTRACT_RUNNER_PORT: "5002"
+  
+  # Feature Flags
+  FLIPT_SERVICE_AVAILABLE: "false"
+  DISABLE_PLATFORM_SERVICE_AUTH: "true"
+  ENABLE_LOG_HISTORY: "false"
+  
+  # Tool Configuration
+  STRUCTURE_TOOL_IMAGE_URL: "docker:unstract/tool-structure:0.0.89"
+  STRUCTURE_TOOL_IMAGE_NAME: "unstract/tool-structure"
+  STRUCTURE_TOOL_IMAGE_TAG: "0.0.89"
+  
+  # Protobuf Fix
+  PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python"
+  
+  # Required Settings
+  SESSION_COOKIE_AGE: "86400"
+  CACHE_TTL_SEC: "10800"
+  INDEXING_FLAG_TTL: "1800"
+  NOTIFICATION_TIMEOUT: "5"
+  ENABLE_LOG_HISTORY: "false"
+  LOG_HISTORY_CONSUMER_INTERVAL: "60"
+  LOGS_BATCH_LIMIT: "30"
+  LOGS_EXPIRATION_TIME_IN_SECOND: "86400"
+  MODEL_PRICES_TTL_IN_DAYS: "7"
+  MODEL_PRICES_URL: "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
+  MODEL_PRICES_FILE_PATH: "/tmp/model_prices.json"
+  FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
+  
+  # File Storage Credentials
+  WORKFLOW_EXECUTION_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
+  API_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
+  PERMANENT_REMOTE_STORAGE: '{"provider": "local"}'
+  TOOL_REGISTRY_STORAGE_CREDENTIALS: '{"provider": "local"}'
+  SHARED_TEMPORARY_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
+  TEMPORARY_REMOTE_STORAGE: '{"provider": "local"}'
+  
+  # Additional Settings
+  WEB_APP_ORIGIN_URL: "http://k8s-medicalc-unstract-6ce6cdbea8-73df255c2edd5c81.elb.us-east-1.amazonaws.com"
+  
+  # CORS Settings
+  CORS_ALLOWED_ORIGINS: "http://k8s-medicalc-unstract-6ce6cdbea8-73df255c2edd5c81.elb.us-east-1.amazonaws.com"
+  CORS_ALLOW_CREDENTIALS: "true"

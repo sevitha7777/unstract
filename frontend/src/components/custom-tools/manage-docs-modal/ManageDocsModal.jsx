@@ -744,7 +744,7 @@ function ManageDocsModal({
             <div>
               <Upload.Dragger
                 name="file"
-                action={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/v1/unstract/${sessionDetails?.orgId}/prompt-studio/file/${details?.tool_id}`}
+                action={`${process.env.REACT_APP_BACKEND_URL}/api/v1/unstract/${sessionDetails?.orgId}/prompt-studio/file/${details?.tool_id}`}
                 headers={{
                   "X-CSRFToken": sessionDetails.csrfToken,
                 }}

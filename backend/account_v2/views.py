@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from utils.user_session import UserSessionUtils
 
 from account_v2.authentication_controller import AuthenticationController
+from account_v2.custom_exceptions import MethodNotImplemented
 from account_v2.dto import (
     OrganizationSignupRequestBody,
     OrganizationSignupResponse,
@@ -60,10 +61,13 @@ def login(request: Request) -> Response:
     return auth_controller.user_login(request)
 
 
-@api_view(["GET"])
+@api_view(["GET", "POST"])
 def signup(request: Request) -> Response:
     auth_controller = AuthenticationController()
-    return auth_controller.user_signup(request)
+    try:
+        return auth_controller.user_signup(request)
+    except MethodNotImplemented:
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(["GET"])

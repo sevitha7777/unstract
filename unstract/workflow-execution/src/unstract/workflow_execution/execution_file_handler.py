@@ -84,11 +84,20 @@ class ExecutionFileHandler:
         Raises:
             ToolMetadataNotFound: If the 'tool_metadata' key is empty.
         """
-        metadata_of_last_tool = self.get_last_tool_metadata(metadata)
-        output_type: str = metadata_of_last_tool.get(
-            ToolMetadataKey.OUTPUT_TYPE, ToolOutputType.TXT
-        )
-        return output_type
+        try:
+            metadata_of_last_tool = self.get_last_tool_metadata(metadata)
+            output_type: str = metadata_of_last_tool.get(
+                ToolMetadataKey.OUTPUT_TYPE, ToolOutputType.TXT
+            )
+            return output_type
+        except ToolMetadataNotFound:
+            # If no tool metadata is available, default to JSON output type
+            # This handles cases where tool execution completed but didn't write metadata
+            logger.warning(
+                f"No tool metadata found for file_execution_id {self.file_execution_id}. "
+                f"Defaulting to JSON output type."
+            )
+            return ToolOutputType.JSON
 
     def get_last_tool_metadata(self, metadata: dict[str, Any]) -> dict[str, Any]:
         tool_metadata = self.get_list_of_tool_metadata(metadata)
@@ -172,6 +181,10 @@ class ExecutionFileHandler:
 
         file_system = FileSystem(FileStorageType.WORKFLOW_EXECUTION)
         file_storage = file_system.get_file_storage()
+        if metadata_path:
+            metadata_dir = os.path.dirname(metadata_path)
+            if metadata_dir:
+                file_storage.mkdir(metadata_dir)
         file_storage.json_dump(path=metadata_path, data=content)
 
         logger.info(

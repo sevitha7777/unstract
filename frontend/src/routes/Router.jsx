@@ -11,6 +11,7 @@ import { useMainAppRoutes } from "./useMainAppRoutes.js";
 import { RequireAuth } from "../components/helpers/auth/RequireAuth.js";
 import { ToolIdePage } from "../pages/ToolIdePage.jsx";
 import { OutputAnalyzerPage } from "../pages/OutputAnalyzerPage.jsx";
+import { SSOHandler } from "../components/sso/SSOHandler.jsx";
 
 let PublicPromptStudioHelper;
 
@@ -98,6 +99,9 @@ function Router() {
           <Route path="" element={<RequireGuest />}>
             <Route path="landing" element={<LandingPage />} />
           </Route>
+          
+          {/* SSO route - accessible without authentication */}
+          <Route path="sso" element={<SSOHandler />} />
 
           {/* public routes accessible to both authenticated and unauthenticated users */}
           {SimplePromptStudioHelper &&

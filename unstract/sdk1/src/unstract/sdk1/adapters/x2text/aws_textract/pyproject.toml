@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unstract-aws-textract"
+version = "0.1.0"
+description = "AWS Textract adapter for Unstract"
+authors = [
+    {name = "Unstract", email = "support@unstract.com"},
+]
+dependencies = [
+    "boto3>=1.26.0",
+]
+requires-python = ">=3.9"
+
+[project.entry-points."unstract.x2text"]
+aws_textract = "unstract.sdk1.adapters.x2text.aws_textract.src.aws_textract:AWSTextract"

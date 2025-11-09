@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-override
+  namespace: medical-claims
+data:
+  override.js: |
+    // Frontend configuration overrides
+    window.REACT_APP_BACKEND_URL = 'http://k8s-medicalc-unstract-89264f6800-853dac805f0e3ed5.elb.us-east-1.amazonaws.com';
+    window.REACT_APP_ENABLE_POSTHOG = 'false';

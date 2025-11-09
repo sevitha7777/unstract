@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { BranchesOutlined } from "@ant-design/icons";
 import { Divider, Image, Layout, Space, Tooltip, Typography } from "antd";
 import PropTypes from "prop-types";
@@ -252,6 +252,16 @@ const SideNavBar = ({ collapsed }) => {
     });
   });
 
+
+
+
+
+
+
+
+
+
+
   return (
     <Sider
       trigger={null}
@@ -309,6 +319,7 @@ const SideNavBar = ({ collapsed }) => {
             </div>
           ))}
         </div>
+
       </div>
     </Sider>
   );

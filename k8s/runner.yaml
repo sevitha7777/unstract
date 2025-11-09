@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unstract-runner
+  namespace: medical-claims
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unstract-runner
+  template:
+    metadata:
+      labels:
+        app: unstract-runner
+    spec:
+      serviceAccountName: medical-claims-sa
+      volumes:
+      - name: unstract-files
+        persistentVolumeClaim:
+          claimName: unstract-efs-pvc
+      containers:
+      - name: runner
+        image: 576245601309.dkr.ecr.us-east-1.amazonaws.com/unstract/runner:latest
+        ports:
+        - containerPort: 5002
+        envFrom:
+        - configMapRef:
+            name: unstract-config
+        - secretRef:
+            name: unstract-secrets
+        volumeMounts:
+        - name: unstract-files
+          mountPath: /tmp/prompt-studio-data
+          subPath: prompt-studio-data
+        - name: unstract-files
+          mountPath: /tmp/workflow-execution
+          subPath: workflow-execution
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unstract-runner
+  namespace: medical-claims
+spec:
+  selector:
+    app: unstract-runner
+  ports:
+  - port: 5002
+    targetPort: 5002

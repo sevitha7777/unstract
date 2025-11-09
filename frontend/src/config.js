@@ -16,7 +16,7 @@ const config = {
     runtimeConfig.faviconPath ||
     process.env.REACT_APP_FAVICON_PATH ||
     "/favicon.ico",
-  logoUrl: runtimeConfig.logoUrl || process.env.REACT_APP_CUSTOM_LOGO_URL,
+  logoUrl: runtimeConfig.logoUrl || process.env.REACT_APP_CUSTOM_LOGO_URL || "/logofull.png",
   // Add more values as OR case, if needed for fallback.
 };
 

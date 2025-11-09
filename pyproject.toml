@@ -3,7 +3,9 @@ name = "unstract"
 version = "0.1.0"
 requires-python = ">=3.12,<3.13"
 
-dependencies = []
+dependencies = [
+    "singleton-decorator>=1.0.0",
+]
 
 [dependency-groups]
 dev = [

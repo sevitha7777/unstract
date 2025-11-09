@@ -1,0 +1,65 @@
+{
+  "title": "AWS Textract Text Extractor",
+  "type": "object",
+  "required": [
+    "adapter_name",
+    "aws_access_key_id",
+    "aws_secret_access_key",
+    "aws_region"
+  ],
+  "properties": {
+    "adapter_name": {
+      "type": "string",
+      "title": "Name",
+      "default": "aws-textract",
+      "description": "Provide a unique name for this adapter instance. Example: AWS Textract 1"
+    },
+    "aws_access_key_id": {
+      "type": "string",
+      "title": "AWS Access Key ID",
+      "description": "AWS Access Key ID with permissions to use Textract service"
+    },
+    "aws_secret_access_key": {
+      "type": "string",
+      "title": "AWS Secret Access Key",
+      "format": "password",
+      "description": "AWS Secret Access Key corresponding to the Access Key ID"
+    },
+    "aws_region": {
+      "type": "string",
+      "title": "AWS Region",
+      "default": "us-east-1",
+      "enum": [
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-central-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-northeast-1",
+        "ca-central-1"
+      ],
+      "description": "AWS region where Textract service will be used"
+    },
+    "feature_types": {
+      "type": "array",
+      "title": "Feature Types",
+      "items": {
+        "type": "string",
+        "enum": ["TABLES", "FORMS", "QUERIES", "SIGNATURES", "LAYOUT"]
+      },
+      "default": ["TABLES", "FORMS"],
+      "description": "Textract features to enable for document analysis"
+    },
+    "output_format": {
+      "type": "string",
+      "title": "Output Format",
+      "enum": ["text", "structured"],
+      "default": "text",
+      "description": "Format of extracted text: 'text' for plain text, 'structured' for JSON with layout information"
+    }
+  }
+}

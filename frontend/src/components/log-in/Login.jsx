@@ -1,51 +1,25 @@
-import { Button } from "antd";
-import { Row, Col } from "antd";
-
-import { getBaseUrl } from "../../helpers/GetStaticData";
+import { Typography } from "antd";
 import "./Login.css";
-import { UnstractBlackLogo } from "../../assets";
-import { ProductContentLayout } from "./ProductContentLayout";
-
-let LoginForm = null;
-try {
-  LoginForm = require("../../plugins/login-form/LoginForm").LoginForm;
-} catch {
-  // The components will remain null of it is not available
-}
+import { LoginForm } from "../../plugins/login-form/LoginForm";
 
 function Login() {
-  const baseUrl = getBaseUrl();
-  const newURL = baseUrl + "/api/v1/login";
-  const handleLogin = () => {
-    window.location.href = newURL;
-  };
-
   return (
     <div className="login-main">
-      <Row>
-        {LoginForm ? (
-          <LoginForm handleLogin={handleLogin} />
-        ) : (
-          <>
-            <Col xs={24} md={12} className="login-left-section">
-              <div className="button-wraper">
-                <UnstractBlackLogo className="logo" />
-                <div>
-                  <Button
-                    className="login-button button-margin"
-                    onClick={handleLogin}
-                  >
-                    Login
-                  </Button>
-                </div>
-              </div>
-            </Col>
-            <Col xs={24} md={12} className="login-right-section">
-              <ProductContentLayout />
-            </Col>
-          </>
-        )}
-      </Row>
+      <div className="login-card">
+        <div className="login-brand">
+          <img
+            src={`${process.env.PUBLIC_URL || ""}/logo.png`}
+            alt="Logo"
+            className="login-brand__logo"
+          />
+        </div>
+        <Typography.Text className="login-subtitle">
+          Sign in or create an account to access Prompt Studio.
+        </Typography.Text>
+        <div className="login-card__tabs">
+          <LoginForm />
+        </div>
+      </div>
     </div>
   );
 }

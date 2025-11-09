@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: unstract-init
+  namespace: medical-claims
+spec:
+  template:
+    spec:
+      serviceAccountName: medical-claims-sa
+      restartPolicy: Never
+      containers:
+      - name: init
+        image: 576245601309.dkr.ecr.us-east-1.amazonaws.com/unstract/backend:latest
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "Creating superuser..."
+          python -c "
+          import os
+          import django
+          os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings.dev')
+          django.setup()
+          from django.contrib.auth import get_user_model
+          User = get_user_model()
+          if not User.objects.filter(username='unstract').exists():
+              User.objects.create_superuser('unstract', 'admin@unstract.com', 'unstract')
+              print('Superuser created successfully')
+          else:
+              print('Superuser already exists')
+          "
+        envFrom:
+        - configMapRef:
+            name: unstract-config
+        - secretRef:
+            name: unstract-secrets

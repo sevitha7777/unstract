@@ -987,6 +987,12 @@ class SourceConnector(BaseConnector):
         workflow_file_system = FileSystem(FileStorageType.WORKFLOW_EXECUTION)
         workflow_file_storage = workflow_file_system.get_file_storage()
 
+        # Ensure execution directories exist before streaming file chunks locally
+        for target_path in (source_file_path, infile_path):
+            directory = os.path.dirname(target_path)
+            if directory:
+                workflow_file_storage.mkdir(directory)
+
         first_iteration = True
         input_log = ""
         file_content_hash = sha256()
@@ -1039,6 +1045,12 @@ class SourceConnector(BaseConnector):
         api_file_storage = api_file_system.get_file_storage()
         workflow_file_system = FileSystem(FileStorageType.WORKFLOW_EXECUTION)
         workflow_file_storage = workflow_file_system.get_file_storage()
+
+        for target_path in (infile_path, source_file_path):
+            directory = os.path.dirname(target_path)
+            if directory:
+                workflow_file_storage.mkdir(directory)
+
         file_content_hash = self._copy_file_to_destination(
             source_storage=api_file_storage,
             destination_storage=workflow_file_storage,
@@ -1222,6 +1234,10 @@ class SourceConnector(BaseConnector):
         for file in file_objs:
             file_name = file.name
             destination_path = os.path.join(api_storage_dir, file_name)
+            destination_dir = os.path.dirname(destination_path)
+            file_system = FileSystem(FileStorageType.API_EXECUTION)
+            file_storage = file_system.get_file_storage()
+            file_storage.mkdir(destination_dir)
 
             mime_type = file.content_type
             logger.info(f"Detected MIME type: {mime_type} for file {file_name}")
@@ -1249,8 +1265,6 @@ class SourceConnector(BaseConnector):
                 file_hashes.update({file_name: file_hash})
                 continue
 
-            file_system = FileSystem(FileStorageType.API_EXECUTION)
-            file_storage = file_system.get_file_storage()
             file_hash = sha256()
             for chunk in file.chunks(chunk_size=cls.READ_CHUNK_SIZE):
                 file_hash.update(chunk)

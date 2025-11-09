@@ -18,20 +18,6 @@ from adapter_processor_v2.exceptions import (
 )
 from unstract.flags.feature_flag import check_feature_flag_status
 
-if check_feature_flag_status("sdk1"):
-    from unstract.sdk1.adapters.adapterkit import Adapterkit
-    from unstract.sdk1.adapters.base import Adapter
-    from unstract.sdk1.constants import AdapterTypes
-    from unstract.sdk1.embedding import EmbeddingCompat
-    from unstract.sdk1.exceptions import SdkError
-    from unstract.sdk1.llm import LLM
-else:
-    from unstract.sdk.adapters.adapterkit import Adapterkit
-    from unstract.sdk.adapters.base import Adapter
-    from unstract.sdk.adapters.enums import AdapterTypes
-    from unstract.sdk.adapters.x2text.constants import X2TextConstants
-    from unstract.sdk.exceptions import SdkError
-
 from .models import AdapterInstance, UserDefaultAdapter
 
 logger = logging.getLogger(__name__)
@@ -100,7 +86,14 @@ class AdapterProcessor:
 
     @staticmethod
     def test_adapter(adapter_id: str, adapter_metadata: dict[str, Any]) -> bool:
-        if check_feature_flag_status("sdk1"):
+        if getattr(settings, 'SDK1_ENABLED', False):
+            from unstract.sdk1.adapters.adapterkit import Adapterkit
+            from unstract.sdk1.constants import AdapterTypes
+            from unstract.sdk1.embedding import EmbeddingCompat
+            from unstract.sdk1.exceptions import SdkError
+            from unstract.sdk1.llm import LLM
+            from unstract.sdk1.adapters.x2text.constants import X2TextConstants
+            
             try:
                 adapter_type = adapter_metadata.get(AdapterKeys.ADAPTER_TYPE)
 
@@ -148,6 +141,11 @@ class AdapterProcessor:
                     e, adapter_name=adapter_metadata[AdapterKeys.ADAPTER_NAME]
                 )
         else:
+            from unstract.sdk.adapters.adapterkit import Adapterkit
+            from unstract.sdk.adapters.enums import AdapterTypes
+            from unstract.sdk.adapters.x2text.constants import X2TextConstants
+            from unstract.sdk.exceptions import SdkError
+            
             try:
                 adapter_class = Adapterkit().get_adapter_class_by_adapter_id(adapter_id)
 
@@ -188,11 +186,17 @@ class AdapterProcessor:
         return adapter_metadata_b
 
     @staticmethod
-    def __fetch_adapters_by_key_value(key: str, value: Any) -> Adapter:
+    def __fetch_adapters_by_key_value(key: str, value: Any) -> list[dict[str, Any]]:
         """Fetches a list of adapters that have an attribute matching key and
         value.
         """
         logger.info(f"Fetching adapter list for {key} with {value}")
+        
+        if getattr(settings, 'SDK1_ENABLED', False):
+            from unstract.sdk1.adapters.adapterkit import Adapterkit
+        else:
+            from unstract.sdk.adapters.adapterkit import Adapterkit
+            
         adapter_kit = Adapterkit()
         adapters = adapter_kit.get_adapters_list()
         return [iterate for iterate in adapters if iterate[key] == value]
@@ -242,14 +246,14 @@ class AdapterProcessor:
                 raise InternalServiceError()
 
     @staticmethod
-    def get_adapter_instance_by_id(adapter_instance_id: str) -> Adapter:
+    def get_adapter_instance_by_id(adapter_instance_id: str) -> str:
         """Get the adapter instance by its ID.
 
         Parameters:
         - adapter_instance_id (str): The ID of the adapter instance.
 
         Returns:
-        - Adapter: The adapter instance with the specified ID.
+        - str: The adapter name with the specified ID.
 
         Raises:
         - Exception: If there is an error while fetching the adapter instance.
@@ -264,12 +268,12 @@ class AdapterProcessor:
 
     @staticmethod
     def get_adapters_by_type(
-        adapter_type: AdapterTypes, user: User
+        adapter_type, user: User
     ) -> list[AdapterInstance]:
         """Get a list of adapters by their type.
 
         Parameters:
-        - adapter_type (AdapterTypes): The type of adapters to retrieve.
+        - adapter_type: The type of adapters to retrieve.
         - user: Logged in User
 
         Returns:
@@ -283,14 +287,14 @@ class AdapterProcessor:
 
     @staticmethod
     def get_adapter_by_name_and_type(
-        adapter_type: AdapterTypes,
+        adapter_type,
         adapter_name: str | None = None,
     ) -> AdapterInstance:
         """Get the adapter instance by its name and type.
 
         Parameters:
         - adapter_name (str): The name of the adapter instance.
-        - adapter_type (AdapterTypes): The type of the adapter instance.
+        - adapter_type: The type of the adapter instance.
 
         Returns:
         - AdapterInstance: The adapter with the specified name and type.

@@ -11,7 +11,7 @@ import "./index.css";
 import config from "./config.js";
 
 // Configure axios base URL and credentials
-axios.defaults.baseURL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+axios.defaults.baseURL = process.env.REACT_APP_BACKEND_URL;
 axios.defaults.withCredentials = true;
 
 const enablePosthog = process.env.REACT_APP_ENABLE_POSTHOG;

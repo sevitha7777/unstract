@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unstract-config
+  namespace: medical-claims
+data:
+  # Django Settings
+  DJANGO_SETTINGS_MODULE: "backend.settings.dev"
+  DJANGO_SECRET_KEY: "1(xf&nc6!y7!l&5xe&i_rx7e^m@fcut9fduv86ft=-b@2g6"
+  DJANGO_APP_BACKEND_URL: "http://unstract-backend:8000"
+  
+  # Database Configuration
+  DB_HOST: "aurora-postgres-cluster.cluster-cjgyqoqki9hf.us-east-1.rds.amazonaws.com"
+  DB_PORT: "5432"
+  DB_NAME: "unstract_db"
+  DB_USER: "postgres"
+  DB_PASSWORD: "Gl?LU3pQLf[Vl3to"
+  DB_SCHEMA: "unstract"
+  
+  # Prompt Service Database
+  PG_BE_HOST: "aurora-postgres-cluster.cluster-cjgyqoqki9hf.us-east-1.rds.amazonaws.com"
+  PG_BE_PORT: "5432"
+  PG_BE_DATABASE: "unstract_db"
+  PG_BE_USERNAME: "postgres"
+  PG_BE_PASSWORD: "Gl?LU3pQLf[Vl3to"
+  DB_USERNAME: "postgres"
+  
+  # Redis Configuration
+  REDIS_HOST: "unstract-redis"
+  REDIS_PORT: "6379"
+  REDIS_PASSWORD: ""
+  REDIS_USER: "default"
+  
+  # RabbitMQ Configuration
+  CELERY_BROKER_BASE_URL: "amqp://unstract-rabbitmq:5672//"
+  CELERY_BROKER_USER: "admin"
+  CELERY_BROKER_PASS: "password"
+  
+  # Service URLs
+  PLATFORM_SERVICE_HOST: "http://unstract-platform-service"
+  PLATFORM_SERVICE_PORT: "3001"
+  PROMPT_HOST: "http://unstract-prompt-service"
+  PROMPT_PORT: "3003"
+  UNSTRACT_RUNNER_HOST: "http://unstract-runner"
+  UNSTRACT_RUNNER_PORT: "5002"
+  X2TEXT_HOST: "http://unstract-x2text-service"
+  X2TEXT_PORT: "3004"
+  
+  # File Storage
+  PROMPT_STUDIO_FILE_PATH: "/tmp/prompt-studio-data"
+  REMOTE_PROMPT_STUDIO_FILE_PATH: "/tmp/prompt-studio-data"
+  WORKFLOW_EXECUTION_DIR_PREFIX: "/tmp/workflow-execution"
+  API_EXECUTION_DIR_PREFIX: "/tmp/api-execution"
+  TOOL_REGISTRY_CONFIG_PATH: "/tmp/tool_registry_config"
+  
+  # Storage Credentials (All Local)
+  WORKFLOW_EXECUTION_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
+  API_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
+  PERMANENT_REMOTE_STORAGE: '{"provider": "local"}'
+  TOOL_REGISTRY_STORAGE_CREDENTIALS: '{"provider": "local"}'
+  SHARED_TEMPORARY_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
+  TEMPORARY_REMOTE_STORAGE: '{"provider": "local"}'
+  
+  # CORS and Security
+  CORS_ALLOWED_ORIGINS: "http://k8s-medicalc-unstract-6ce6cdbea8-73df255c2edd5c81.elb.us-east-1.amazonaws.com"
+  CORS_ALLOW_CREDENTIALS: "true"
+  CSRF_COOKIE_SECURE: "false"
+  SESSION_COOKIE_SECURE: "false"
+  SESSION_COOKIE_AGE: "86400"
+  WEB_APP_ORIGIN_URL: "http://k8s-medicalc-unstract-6ce6cdbea8-73df255c2edd5c81.elb.us-east-1.amazonaws.com"
+  
+  # Auth Settings
+  DEFAULT_AUTH_USERNAME: "unstract"
+  DEFAULT_AUTH_PASSWORD: "unstract"
+  DISABLE_PLATFORM_SERVICE_AUTH: "true"
+  
+  # Performance Settings
+  DEFAULT_LOG_LEVEL: "INFO"
+  PATH_PREFIX: "api/v1"
+  CACHE_TTL_SEC: "10800"
+  INDEXING_FLAG_TTL: "1800"
+  NOTIFICATION_TIMEOUT: "5"
+  
+  # WebSocket Configuration
+  ENABLE_WEBSOCKET: "true"
+  WEBSOCKET_ALLOWED_ORIGINS: "http://k8s-medicalc-unstract-6ce6cdbea8-73df255c2edd5c81.elb.us-east-1.amazonaws.com"
+  
+  # Logging Configuration
+  LOGS_BATCH_LIMIT: "30"
+  LOGS_EXPIRATION_TIME_IN_SECOND: "86400"
+  LOG_HISTORY_CONSUMER_INTERVAL: "60"
+  
+  # Feature Flags
+  FLIPT_SERVICE_AVAILABLE: "false"
+  ENABLE_LOG_HISTORY: "false"
+  
+  # Tool Configuration
+  STRUCTURE_TOOL_IMAGE_NAME: "unstract/tool-structure"
+  STRUCTURE_TOOL_IMAGE_TAG: "0.0.89"
+  STRUCTURE_TOOL_IMAGE_URL: "docker:unstract/tool-structure:0.0.89"
+  
+  # Model Pricing
+  MODEL_PRICES_TTL_IN_DAYS: "7"
+  MODEL_PRICES_URL: "https://raw.githubusercontent.com/Zipstack/unstract/main/backend/model_pricing/model_prices.json"
+  MODEL_PRICES_FILE_PATH: "/tmp/model_prices.json"
+  
+  # Protocol Buffers
+  PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python"

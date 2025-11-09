@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unstract-x2text-service
+  namespace: medical-claims
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unstract-x2text-service
+  template:
+    metadata:
+      labels:
+        app: unstract-x2text-service
+    spec:
+      serviceAccountName: medical-claims-sa
+      containers:
+      - name: x2text-service
+        image: 576245601309.dkr.ecr.us-east-1.amazonaws.com/unstract/x2text:latest
+        ports:
+        - containerPort: 3004
+        envFrom:
+        - configMapRef:
+            name: unstract-config
+        - secretRef:
+            name: unstract-secrets
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unstract-x2text-service
+  namespace: medical-claims
+spec:
+  selector:
+    app: unstract-x2text-service
+  ports:
+  - port: 3004
+    targetPort: 3004

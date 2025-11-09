@@ -18,7 +18,8 @@ dependencies = [
     "unstract-sdk[gcs, azure, aws]~=0.78.0", # Add version
     "unstract-flags",
     "unstract-core[flask]",
-    "unstract-sdk1[gcs, azure, aws]"
+    "unstract-sdk1[gcs, azure, aws]",
+    "gunicorn>=23.0.0",
 ]
 
 [tool.uv.sources]

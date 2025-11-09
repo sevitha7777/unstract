@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unstract-frontend
+  namespace: medical-claims
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: unstract-frontend
+  template:
+    metadata:
+      labels:
+        app: unstract-frontend
+    spec:
+      serviceAccountName: medical-claims-sa
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+      - name: runtime-config-script
+        configMap:
+          name: runtime-config-script
+          defaultMode: 0755
+
+      containers:
+      - name: frontend
+        image: 576245601309.dkr.ecr.us-east-1.amazonaws.com/unstract/frontend:v1.4
+        ports:
+        - containerPort: 8080
+        env:
+        - name: REACT_APP_BACKEND_URL
+          value: ""
+        - name: REACT_APP_API_URL
+          value: "/api"
+        - name: REACT_APP_ENABLE_POSTHOG
+          value: "false"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: runtime-config-script
+          mountPath: /docker-entrypoint.d/40-env.sh
+          subPath: generate-runtime-config.sh
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unstract-frontend
+  namespace: medical-claims
+spec:
+  selector:
+    app: unstract-frontend
+  ports:
+  - port: 3000
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unstract-frontend-lb
+  namespace: medical-claims
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+spec:
+  type: LoadBalancer
+  selector:
+    app: unstract-frontend
+  ports:
+  - port: 80
+    targetPort: 8080

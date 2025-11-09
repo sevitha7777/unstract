@@ -623,6 +623,7 @@ $RECYCLE.BIN/
 # Authentication Plugins
 backend/plugins/authentication/*
 !backend/plugins/authentication/auth_sample
+!backend/plugins/authentication/auth_email_password
 
 # Processor Plugins
 backend/plugins/processor/*
@@ -648,6 +649,7 @@ backend/pluggable_apps/*
 
 # FE Plugins
 frontend/src/plugins/*
+!frontend/src/plugins/login-form
 frontend/public/llm-whisperer/
 
 

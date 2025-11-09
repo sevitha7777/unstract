@@ -384,6 +384,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "account_v2.jwt_middleware.JWTAuthenticationMiddleware",  # JWT SSO middleware
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     CUSTOM_AUTH_MIDDLEWARE,
@@ -501,6 +502,9 @@ REST_FRAMEWORK = {
     "VERSION_PARAM": "version",
 }
 
+# JWT SSO Configuration
+SHARED_JWT_SECRET = os.environ.get("SHARED_JWT_SECRET", "your-shared-jwt-secret-with-main-app")
+
 # These paths will work without authentication
 WHITELISTED_PATHS_LIST = [
     "/login",
@@ -509,6 +513,7 @@ WHITELISTED_PATHS_LIST = [
     "/favicon.ico",
     "/logout",
     "/signup",
+    "/sso",
     "/static",
 ]
 WHITELISTED_PATHS = [f"/{PATH_PREFIX}{PATH}" for PATH in WHITELISTED_PATHS_LIST]
@@ -579,3 +584,6 @@ if missing_settings:
     raise ValueError(ERROR_MESSAGE)
 
 ENABLE_HIGHLIGHT_API_DEPLOYMENT = os.environ.get("ENABLE_HIGHLIGHT_API_DEPLOYMENT", False)
+
+# SDK1 Configuration
+SDK1_ENABLED = CommonUtils.str_to_bool(os.environ.get("SDK1_ENABLED", "False"))
