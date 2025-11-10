@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: unstract-prompt-service
+  name: unstract-callback-workers
   namespace: medical-claims
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: unstract-prompt-service
+      app: unstract-callback-workers
   template:
     metadata:
       labels:
-        app: unstract-prompt-service
+        app: unstract-callback-workers
     spec:
       serviceAccountName: medical-claims-sa
       volumes:
@@ -19,15 +19,22 @@ spec:
         persistentVolumeClaim:
           claimName: unstract-efs-pvc
       containers:
-      - name: prompt-service
-        image: 576245601309.dkr.ecr.us-east-1.amazonaws.com/unstract/prompt:v1.40
-        ports:
-        - containerPort: 3003
+      - name: callback-workers
+        image: 576245601309.dkr.ecr.us-east-1.amazonaws.com/unstract/workers:v1.41
+        command: ["/app/run-worker.sh", "callback"]
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
         envFrom:
         - configMapRef:
             name: unstract-config
         - secretRef:
             name: unstract-secrets
+        env:
+        - name: DJANGO_APP_BACKEND_URL
+          value: "http://unstract-backend:8000"
+        - name: INTERNAL_API_BASE_URL
+          value: "http://unstract-backend:8000/internal"
         volumeMounts:
         - name: unstract-files
           mountPath: /tmp/prompt-studio-data
@@ -37,20 +44,8 @@ spec:
           subPath: workflow-execution
         resources:
           requests:
-            memory: "1Gi"
-            cpu: "200m"
+            memory: "512Mi"
+            cpu: "250m"
           limits:
-            memory: "2Gi"
+            memory: "1Gi"
             cpu: "500m"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: unstract-prompt-service
-  namespace: medical-claims
-spec:
-  selector:
-    app: unstract-prompt-service
-  ports:
-  - port: 3003
-    targetPort: 3003

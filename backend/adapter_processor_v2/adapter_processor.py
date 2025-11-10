@@ -137,8 +137,9 @@ class AdapterProcessor:
                     adapter_instance = adapter_class(adapter_metadata)
                     return adapter_instance.test_connection()
             except SdkError as e:
+                logger.error(f"SDK1 adapter test failed: {e}")
                 raise TestAdapterError(
-                    e, adapter_name=adapter_metadata[AdapterKeys.ADAPTER_NAME]
+                    e, adapter_name=adapter_metadata.get(AdapterKeys.ADAPTER_NAME, "Unknown")
                 )
         else:
             from unstract.sdk.adapters.adapterkit import Adapterkit

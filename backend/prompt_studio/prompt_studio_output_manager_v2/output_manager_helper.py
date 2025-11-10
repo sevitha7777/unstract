@@ -299,8 +299,10 @@ class OutputManagerHelper:
         logger.info(f"Collected confidence scores: {confidence_scores}")
         if confidence_scores:
             combined_confidence = sum(confidence_scores) / len(confidence_scores)
-            result['_combined_confidence'] = round(combined_confidence, 2)
-            logger.info(f"Combined confidence calculated: {result['_combined_confidence']}")
+            result['_confidence'] = round(combined_confidence, 3)
+            result['_confidence_method'] = 'average'
+            result['_confidence_count'] = len(confidence_scores)
+            logger.info(f"Combined confidence calculated: {result['_confidence']}")
         else:
             logger.info("No confidence scores found for combined output")
                 

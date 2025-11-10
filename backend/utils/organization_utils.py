@@ -28,18 +28,21 @@ def resolve_organization(
         Http404: If organization not found and raise_on_not_found=True
     """
     try:
-        if org_id.isdigit():
-            # If it's numeric, treat as primary key
-            if raise_on_not_found:
-                return get_object_or_404(Organization, id=org_id)
-            else:
-                return Organization.objects.get(id=org_id)
-        else:
-            # If it's string, treat as organization_id field
+        # First try by organization_id field (this is the common case)
+        try:
             if raise_on_not_found:
                 return get_object_or_404(Organization, organization_id=org_id)
             else:
                 return Organization.objects.get(organization_id=org_id)
+        except Organization.DoesNotExist:
+            # If not found by organization_id, try by primary key if it's numeric
+            if org_id.isdigit():
+                if raise_on_not_found:
+                    return get_object_or_404(Organization, id=org_id)
+                else:
+                    return Organization.objects.get(id=org_id)
+            else:
+                raise  # Re-raise the DoesNotExist exception
     except Organization.DoesNotExist:
         if raise_on_not_found:
             raise

@@ -39,7 +39,12 @@ logger = logging.getLogger(__name__)
 
 class AdapterInstanceModelManager(DefaultOrganizationManagerMixin, models.Manager):
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset()
+        try:
+            # Try the organization-filtered queryset
+            return super().get_queryset()
+        except Exception:
+            # If organization filtering fails, return all records
+            return models.Manager.get_queryset(self)
 
     def for_user(self, user: User) -> QuerySet[Any]:
         return (

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Set permissive umask to ensure directories are created with write permissions
+umask 0000
+
 show_help() {
     echo "Usage: ./entrypoint.sh [OPTIONS]"
     echo ""

@@ -49,17 +49,20 @@ data:
   # File Storage
   PROMPT_STUDIO_FILE_PATH: "/tmp/prompt-studio-data"
   REMOTE_PROMPT_STUDIO_FILE_PATH: "/tmp/prompt-studio-data"
+  WORKFLOW_EXECUTION_FILE_PATH: "/tmp/workflow-execution"
+  API_EXECUTION_FILE_PATH: "/tmp/workflow-execution"
   WORKFLOW_EXECUTION_DIR_PREFIX: "/tmp/workflow-execution"
-  API_EXECUTION_DIR_PREFIX: "/tmp/api-execution"
+  API_EXECUTION_DIR_PREFIX: "/tmp/workflow-execution"
+  API_STORAGE_DIR_PATH: "/tmp/workflow-execution"
   TOOL_REGISTRY_CONFIG_PATH: "/tmp/tool_registry_config"
   
-  # Storage Credentials (All Local)
-  WORKFLOW_EXECUTION_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
-  API_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
-  PERMANENT_REMOTE_STORAGE: '{"provider": "local"}'
+  # Storage Credentials (Redis for workflow execution)
+  WORKFLOW_EXECUTION_FILE_STORAGE_CREDENTIALS: '{"provider": "redis"}'
+  API_FILE_STORAGE_CREDENTIALS: '{"provider": "redis"}'
+  PERMANENT_REMOTE_STORAGE: '{"provider": "redis"}'
   TOOL_REGISTRY_STORAGE_CREDENTIALS: '{"provider": "local"}'
-  SHARED_TEMPORARY_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
-  TEMPORARY_REMOTE_STORAGE: '{"provider": "local"}'
+  SHARED_TEMPORARY_FILE_STORAGE_CREDENTIALS: '{"provider": "redis"}'
+  TEMPORARY_REMOTE_STORAGE: '{"provider": "redis"}'
   
   # CORS and Security
   CORS_ALLOWED_ORIGINS: "http://k8s-medicalc-unstract-6ce6cdbea8-73df255c2edd5c81.elb.us-east-1.amazonaws.com"
@@ -92,6 +95,8 @@ data:
   
   # Feature Flags
   FLIPT_SERVICE_AVAILABLE: "false"
+  SDK1_ENABLED: "true"
+  SDK1_PRELOAD_MODE: "sync"
   ENABLE_LOG_HISTORY: "false"
   
   # Tool Configuration

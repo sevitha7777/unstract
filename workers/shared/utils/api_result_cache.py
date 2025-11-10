@@ -19,6 +19,7 @@ from unstract.core.worker_models import (
 from unstract.workflow_execution.api_deployment.cache_utils import WorkerResultCacheUtils
 
 from .api_metadata import ApiMetadataBuilder
+from .confidence_calculator import ConfidenceCalculator
 
 logger = logging.getLogger(__name__)
 
@@ -289,6 +290,10 @@ class APIResultCacheManager:
             True if caching succeeded, False otherwise
         """
         try:
+            # Add aggregate confidence to result if available
+            if result and not error:
+                result = ConfidenceCalculator.add_confidence_to_result(result)
+            
             # Determine status
             status = (
                 ApiDeploymentResultStatus.FAILED

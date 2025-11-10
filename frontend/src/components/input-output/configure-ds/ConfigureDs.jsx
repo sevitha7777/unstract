@@ -173,7 +173,6 @@ function ConfigureDs({
       url = getUrl("test_connectors/");
     } else {
       const adapterMetadata = { ...updatedFormData };
-      delete adapterMetadata.adapterName;
       body = {
         adapter_id: selectedSourceId,
         adapter_metadata: adapterMetadata,
@@ -274,7 +273,6 @@ function ConfigureDs({
     } else {
       const adapterMetadata = { ...formData };
       const adapterName = adapterMetadata?.adapter_name;
-      delete adapterMetadata.adapter_name;
       body = {
         adapter_id: selectedSourceId,
         adapter_metadata: adapterMetadata,

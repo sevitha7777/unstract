@@ -193,6 +193,8 @@ class AdapterInstanceViewSet(ModelViewSet):
                 )
 
             instance = serializer.save()
+            # Encrypt the metadata properly
+            instance.create_adapter()
             organization_member = OrganizationMemberService.get_user_by_id(
                 request.user.id
             )

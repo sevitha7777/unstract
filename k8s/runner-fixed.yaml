@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unstract-runner
+  namespace: medical-claims
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unstract-runner
+  template:
+    metadata:
+      labels:
+        app: unstract-runner
+    spec:
+      serviceAccountName: medical-claims-sa
+      containers:
+      - name: docker-dind
+        image: docker:24-dind
+        securityContext:
+          privileged: true
+        env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""
+        volumeMounts:
+        - mountPath: /var/lib/docker
+          name: docker-storage
+      - name: runner
+        image: 576245601309.dkr.ecr.us-east-1.amazonaws.com/unstract/runner:latest
+        ports:
+        - containerPort: 5002
+        env:
+        - name: DOCKER_HOST
+          value: "tcp://localhost:2375"
+        envFrom:
+        - configMapRef:
+            name: unstract-config
+        - secretRef:
+            name: unstract-secrets
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: "1"
+            memory: 2Gi
+        volumeMounts:
+        - mountPath: /tmp/prompt-studio-data
+          name: unstract-files
+          subPath: prompt-studio-data
+        - mountPath: /tmp/workflow-execution
+          name: unstract-files
+          subPath: workflow-execution
+      volumes:
+      - name: unstract-files
+        persistentVolumeClaim:
+          claimName: unstract-efs-pvc
+      - name: docker-storage
+        emptyDir: {}

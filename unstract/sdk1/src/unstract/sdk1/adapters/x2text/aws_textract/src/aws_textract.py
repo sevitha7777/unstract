@@ -67,21 +67,48 @@ class AWSTextract(X2TextAdapter):
     def test_connection(self) -> bool:
         """Test connection to AWS Textract service."""
         try:
-            # Quick test without actually calling AWS if credentials are missing
+            # Check if credentials are provided
             if not all([self.config.get('aws_access_key_id'), self.config.get('aws_secret_access_key')]):
                 raise AdapterError("AWS credentials are required")
             
-            # Simple test by calling get_document_text_detection with invalid job ID
-            # This will fail but confirms we can connect to the service
-            self.client.get_document_text_detection(JobId="test-connection")
+            # Test credentials by calling a simple AWS STS operation
+            import boto3
+            sts_client = boto3.client(
+                'sts',
+                aws_access_key_id=self.config.get('aws_access_key_id'),
+                aws_secret_access_key=self.config.get('aws_secret_access_key'),
+                region_name=self.config.get('aws_region', 'us-east-1')
+            )
+            
+            # This will fail immediately with invalid credentials
+            sts_client.get_caller_identity()
+            
+            # If STS works, test Textract service availability
+            # Use a minimal operation that doesn't require a document
+            try:
+                self.client.list_adapters(MaxResults=1)
+            except Exception as textract_e:
+                # If list_adapters fails, try a different approach
+                if "AccessDenied" in str(textract_e):
+                    # Credentials work but no Textract permissions
+                    raise AdapterError(f"AWS credentials valid but missing Textract permissions: {str(textract_e)}")
+                elif "UnauthorizedOperation" in str(textract_e) or "InvalidAction" in str(textract_e):
+                    # Service exists but operation not allowed - credentials are valid
+                    return True
+                else:
+                    # Other Textract-specific error
+                    raise AdapterError(f"Textract service error: {str(textract_e)}")
+            
+            return True
+            
         except Exception as e:
-            if "InvalidJobIdException" in str(e) or "InvalidParameterException" in str(e):
-                # Expected error means connection is working
-                return True
-            # Any other error means connection failed
-            logger.error(f"AWS Textract connection test failed: {e}")
-            raise AdapterError(f"AWS Textract connection failed: {str(e)}") from e
-        return True
+            if "InvalidUserID.NotFound" in str(e) or "SignatureDoesNotMatch" in str(e) or "InvalidAccessKeyId" in str(e):
+                raise AdapterError(f"Invalid AWS credentials: {str(e)}")
+            elif "AccessDenied" in str(e):
+                raise AdapterError(f"AWS credentials valid but insufficient permissions: {str(e)}")
+            else:
+                logger.error(f"AWS Textract connection test failed: {e}")
+                raise AdapterError(f"AWS connection failed: {str(e)}") from e
 
     def _extract_text_from_blocks(self, blocks: list[dict]) -> str:
         """Extract plain text from Textract blocks."""

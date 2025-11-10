@@ -74,7 +74,11 @@ def check_feature_flag_status(
     except Exception:
         return False
 
+    # Attempt preload after determining flag status, but don't let preload failures affect the flag result
     if flag_enabled and flag_key.lower() == "sdk1":
-        _maybe_preload_sdk1_adapters()
+        try:
+            _maybe_preload_sdk1_adapters()
+        except Exception as exc:
+            logger.warning("SDK1 preload failed, but flag remains enabled: %s", exc)
 
     return flag_enabled

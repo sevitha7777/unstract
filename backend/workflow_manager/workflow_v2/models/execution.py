@@ -12,6 +12,10 @@ from usage_v2.constants import UsageKeys
 from usage_v2.models import Usage
 from utils.common_utils import CommonUtils
 from utils.models.base_model import BaseModel
+from utils.models.organization_mixin import (
+    DefaultOrganizationManagerMixin,
+    DefaultOrganizationMixin,
+)
 
 from workflow_manager.execution.dto import ExecutionCache
 from workflow_manager.execution.execution_cache_utils import ExecutionCacheUtils
@@ -24,7 +28,7 @@ logger = logging.getLogger(__name__)
 EXECUTION_ERROR_LENGTH = 256
 
 
-class WorkflowExecutionManager(models.Manager):
+class WorkflowExecutionManager(DefaultOrganizationManagerMixin, models.Manager):
     """Custom manager for WorkflowExecution model to handle user-specific filtering."""
 
     def for_user(self, user) -> QuerySet:
@@ -99,7 +103,7 @@ class WorkflowExecutionManager(models.Manager):
         return count
 
 
-class WorkflowExecution(BaseModel):
+class WorkflowExecution(DefaultOrganizationMixin, BaseModel):
     # Use the custom manager
     objects = WorkflowExecutionManager()
 

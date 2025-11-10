@@ -20,7 +20,7 @@ spec:
           claimName: unstract-efs-pvc
       containers:
       - name: backend
-        image: 576245601309.dkr.ecr.us-east-1.amazonaws.com/unstract/backend:v1.27
+        image: 576245601309.dkr.ecr.us-east-1.amazonaws.com/unstract/backend:v1.41
         ports:
         - containerPort: 8000
         envFrom:

@@ -20,6 +20,7 @@ class WorkflowExecutionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # Get the uuid:pk from the URL path
         workflow_id = self.kwargs.get("pk")
+        # Use the organization-aware manager that filters by organization
         queryset = WorkflowExecution.objects.filter(workflow_id=workflow_id).order_by(
             self.CREATED_AT_FIELD_DESC
         )

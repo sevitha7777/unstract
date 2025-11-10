@@ -45,9 +45,12 @@ data:
   # File Storage
   PROMPT_STUDIO_FILE_PATH: "/tmp/prompt-studio-data"
   REMOTE_PROMPT_STUDIO_FILE_PATH: "/tmp/prompt-studio-data"
+  PROMPT_STUDIO_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
   TOOL_REGISTRY_CONFIG_PATH: "/tmp/tool_registry_config"
   WORKFLOW_EXECUTION_FILE_PATH: "/tmp/workflow-execution"
   API_EXECUTION_FILE_PATH: "/tmp/workflow-execution"
+  API_EXECUTION_DIR_PREFIX: "workflow-execution"
+  WORKFLOW_EXECUTION_DIR_PREFIX: "/tmp/workflow-execution"
   
   # Auth Configuration
   DEFAULT_AUTH_USERNAME: "unstract"
@@ -67,6 +70,8 @@ data:
   
   # Feature Flags
   FLIPT_SERVICE_AVAILABLE: "false"
+  SDK1_ENABLED: "true"
+  SDK1_PRELOAD_MODE: "sync"
   DISABLE_PLATFORM_SERVICE_AUTH: "true"
   ENABLE_LOG_HISTORY: "false"
   
@@ -92,13 +97,13 @@ data:
   MODEL_PRICES_FILE_PATH: "/tmp/model_prices.json"
   FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
   
-  # File Storage Credentials
-  WORKFLOW_EXECUTION_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
-  API_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
-  PERMANENT_REMOTE_STORAGE: '{"provider": "local"}'
+  # File Storage Credentials (MinIO for workflow execution with SDK1 structure)
+  WORKFLOW_EXECUTION_FILE_STORAGE_CREDENTIALS: '{"provider": "minio", "credentials": {"key": "minioadmin", "secret": "minioadmin", "client_kwargs": {"endpoint_url": "http://minio:9000"}}}'
+  API_FILE_STORAGE_CREDENTIALS: '{"provider": "minio", "credentials": {"key": "minioadmin", "secret": "minioadmin", "client_kwargs": {"endpoint_url": "http://minio:9000"}}}'
+  PERMANENT_REMOTE_STORAGE: '{"provider": "local"}' 
   TOOL_REGISTRY_STORAGE_CREDENTIALS: '{"provider": "local"}'
-  SHARED_TEMPORARY_FILE_STORAGE_CREDENTIALS: '{"provider": "local"}'
-  TEMPORARY_REMOTE_STORAGE: '{"provider": "local"}'
+  SHARED_TEMPORARY_FILE_STORAGE_CREDENTIALS: '{"provider": "minio", "credentials": {"key": "minioadmin", "secret": "minioadmin", "client_kwargs": {"endpoint_url": "http://minio:9000"}}}'
+  TEMPORARY_REMOTE_STORAGE: '{"provider": "minio", "credentials": {"key": "minioadmin", "secret": "minioadmin", "client_kwargs": {"endpoint_url": "http://minio:9000"}}}'
   
   # Additional Settings
   WEB_APP_ORIGIN_URL: "http://k8s-medicalc-unstract-6ce6cdbea8-73df255c2edd5c81.elb.us-east-1.amazonaws.com"

@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: unstract-workers
+  name: unstract-api-deployment-workers
   namespace: medical-claims
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: unstract-workers
+      app: unstract-api-deployment-workers
   template:
     metadata:
       labels:
-        app: unstract-workers
+        app: unstract-api-deployment-workers
     spec:
       serviceAccountName: medical-claims-sa
       volumes:
@@ -19,11 +19,12 @@ spec:
         persistentVolumeClaim:
           claimName: unstract-efs-pvc
       containers:
-      - name: workers
-        image: 576245601309.dkr.ecr.us-east-1.amazonaws.com/unstract/workers:latest
-        env:
-        - name: CELERY_QUEUES
-          value: "celery,celery_api_deployments"
+      - name: api-deployment-workers
+        image: 576245601309.dkr.ecr.us-east-1.amazonaws.com/unstract/workers:v1.41
+        command: ["/app/run-worker.sh", "api-deployment"]
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
         envFrom:
         - configMapRef:
             name: unstract-config
@@ -46,6 +47,8 @@ spec:
           value: "true"
         - name: CELERY_TASK_REJECT_ON_WORKER_LOST
           value: "true"
+        - name: CELERY_QUEUES
+          value: "celery_api_deployments"
         volumeMounts:
         - name: unstract-files
           mountPath: /tmp/prompt-studio-data
@@ -55,32 +58,8 @@ spec:
           subPath: workflow-execution
         resources:
           requests:
-            memory: "2Gi"
-            cpu: "1000m"
+            memory: "512Mi"
+            cpu: "250m"
           limits:
-            memory: "4Gi"
-            cpu: "2000m"
-        livenessProbe:
-          exec:
-            command:
-            - celery
-            - -A
-            - worker
-            - inspect
-            - ping
-          initialDelaySeconds: 60
-          periodSeconds: 30
-          timeoutSeconds: 10
-          failureThreshold: 3
-        readinessProbe:
-          exec:
-            command:
-            - celery
-            - -A
-            - worker
-            - inspect
-            - active
-          initialDelaySeconds: 30
-          periodSeconds: 15
-          timeoutSeconds: 5
-          failureThreshold: 2
+            memory: "1Gi"
+            cpu: "500m"

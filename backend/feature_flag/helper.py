@@ -1,6 +1,6 @@
 import logging
+import os
 
-from unstract.flags.client.flipt import FliptClient
 from unstract.flags.feature_flag import check_feature_flag_status
 
 logger = logging.getLogger(
@@ -22,6 +22,17 @@ class FeatureFlagHelper:
             dict
         """
         try:
+            # Check if Flipt service is available before importing
+            FLIPT_SERVICE_AVAILABLE = (
+                os.environ.get("FLIPT_SERVICE_AVAILABLE", "false").lower() == "true"
+            )
+            if not FLIPT_SERVICE_AVAILABLE:
+                logger.warning("Flipt service is not available.")
+                return {}
+            
+            # Lazy import to avoid gRPC imports when service is not available
+            from unstract.flags.client.flipt import FliptClient
+            
             flipt_client = FliptClient()
             response = flipt_client.list_feature_flags(
                 namespace_key=namespace_key,
