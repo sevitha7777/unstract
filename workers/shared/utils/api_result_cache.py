@@ -20,6 +20,7 @@ from unstract.workflow_execution.api_deployment.cache_utils import WorkerResultC
 
 from .api_metadata import ApiMetadataBuilder
 from .confidence_calculator import ConfidenceCalculator
+from .prompt_confidence_retriever import PromptConfidenceRetriever
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +93,20 @@ class APIResultCacheManager:
                 metadata=metadata,
             )
 
+            # Try prompt-level confidence if no field-level confidence found
+            if (api_result.result and not api_result.error and 
+                '_confidence' not in api_result.result and metadata):
+                document_id = metadata.get('document_id')
+                if document_id and organization_id:
+                    prompt_confidence = PromptConfidenceRetriever.get_aggregate_confidence_for_workflow(
+                        workflow_id=workflow_id,
+                        document_id=document_id,
+                        organization_id=organization_id
+                    )
+                    if prompt_confidence:
+                        api_result.result.update(prompt_confidence)
+                        logger.info(f"Added prompt-level confidence to API result: {prompt_confidence}")
+
             # Cache the result using WorkerResultCacheUtils
             self.cache_utils.update_api_results(
                 workflow_id=workflow_id, execution_id=execution_id, api_result=api_result
@@ -101,6 +116,13 @@ class APIResultCacheManager:
                 f"Successfully cached API result for file {file_hash.file_name} "
                 f"in execution {execution_id}"
             )
+
+            if organization_id:
+                self._track_api_hub_usage(
+                    organization_id=organization_id,
+                    execution_id=execution_id,
+                    file_execution_id=file_processing_result.file_execution_id,
+                )
 
             return True
 
@@ -134,6 +156,11 @@ class APIResultCacheManager:
         else:
             status = ApiDeploymentResultStatus.FAILED
 
+        # Add confidence scores to result if available
+        result = file_processing_result.result
+        if result and not file_processing_result.error:
+            result = ConfidenceCalculator.add_confidence_to_result(result)
+
         # Merge metadata from result and additional metadata
         result_metadata = file_processing_result.metadata or {}
         additional_metadata = metadata or {}
@@ -155,7 +182,7 @@ class APIResultCacheManager:
             file=file_hash.file_name,
             status=status,
             file_execution_id=file_processing_result.file_execution_id,
-            result=file_processing_result.result,
+            result=result,
             error=file_processing_result.error,
             metadata=combined_metadata,
         )
@@ -290,9 +317,23 @@ class APIResultCacheManager:
             True if caching succeeded, False otherwise
         """
         try:
-            # Add aggregate confidence to result if available
+            # Add confidence scores to result if available
             if result and not error:
+                # First try field-level confidence calculation
                 result = ConfidenceCalculator.add_confidence_to_result(result)
+                
+                # If no field-level confidence found, try prompt-level confidence from database
+                if '_confidence' not in result and metadata:
+                    document_id = metadata.get('document_id')
+                    if document_id and organization_id:
+                        prompt_confidence = PromptConfidenceRetriever.get_aggregate_confidence_for_workflow(
+                            workflow_id=workflow_id,
+                            document_id=document_id,
+                            organization_id=organization_id
+                        )
+                        if prompt_confidence:
+                            result.update(prompt_confidence)
+                            logger.info(f"Added prompt-level confidence to API result: {prompt_confidence}")
             
             # Determine status
             status = (
@@ -316,9 +357,13 @@ class APIResultCacheManager:
                 workflow_id=workflow_id, execution_id=execution_id, api_result=api_result
             )
 
+            confidence_info = ""
+            if result and '_confidence' in result:
+                confidence_info = f" (confidence: {result['_confidence']})"
+            
             logger.info(
                 f"Successfully cached direct API result for file {file_name} "
-                f"in execution {execution_id} for organization {organization_id}"
+                f"in execution {execution_id} for organization {organization_id}{confidence_info}"
             )
 
             if organization_id:

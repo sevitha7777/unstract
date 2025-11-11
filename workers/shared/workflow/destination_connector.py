@@ -652,6 +652,9 @@ class WorkerDestinationConnector:
                     f"(from workflow start: {workflow_start_time:.6f} to now: {current_time:.6f})"
                 )
 
+            # Note: document_id retrieval for prompt-level confidence is not available in current API client
+            # Field-level confidence calculation will still work through ConfidenceCalculator
+
             # Use APIResultCacheManager for consistent caching behavior
             api_cache_manager = get_api_cache_manager()
             success = api_cache_manager.cache_api_result_direct(
