@@ -397,6 +397,48 @@ class StructureTool(BaseTool):
         structured_output[SettingsKeys.METADATA][SettingsKeys.FILE_NAME] = (
             self.source_file_name
         )
+        
+        # Extract confidence data from prompt service response and add to result
+        # Check multiple possible locations for confidence data
+        confidence_data = None
+        
+        # Debug: Log the structure of the response
+        self.stream_log(f"Structured output keys: {list(structured_output.keys())}")
+        if SettingsKeys.METADATA in structured_output:
+            self.stream_log(f"Metadata keys: {list(structured_output[SettingsKeys.METADATA].keys())}")
+        
+        # Check metadata location first (most likely)
+        if SettingsKeys.METADATA in structured_output and "confidence_data" in structured_output[SettingsKeys.METADATA]:
+            confidence_data = structured_output[SettingsKeys.METADATA]["confidence_data"]
+            self.stream_log(f"Found confidence data in structured_output.metadata: {len(confidence_data)} prompts")
+        # Check root level as fallback
+        elif "confidence_data" in structured_output:
+            confidence_data = structured_output["confidence_data"]
+            self.stream_log(f"Found confidence data in structured_output root: {len(confidence_data)} prompts")
+        else:
+            self.stream_log("No confidence data found in prompt service response")
+        
+        if confidence_data:
+            self.stream_log(f"Processing confidence data for {len(confidence_data)} prompts")
+            
+            # Extract confidence scores and calculate aggregate
+            confidence_scores = []
+            for prompt_key, conf_data in confidence_data.items():
+                if isinstance(conf_data, dict) and "overall_confidence" in conf_data:
+                    confidence_scores.append(conf_data["overall_confidence"])
+            
+            if confidence_scores:
+                # Calculate aggregate confidence
+                aggregate_confidence = sum(confidence_scores) / len(confidence_scores)
+                
+                # Add confidence fields directly to the structured output
+                structured_output["_confidence"] = round(aggregate_confidence, 3)
+                structured_output["_confidence_method"] = "average"
+                structured_output["_confidence_count"] = len(confidence_scores)
+                
+                self.stream_log(f"Added aggregate confidence {aggregate_confidence:.3f} from {len(confidence_scores)} prompts to result")
+            else:
+                self.stream_log("No valid confidence scores found to aggregate")
 
         # Add extracted text for HITL raw view
         if extracted_text:

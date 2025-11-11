@@ -87,3 +87,40 @@ class PromptStudioOutputView(viewsets.ModelViewSet):
         )
 
         return Response(result, status=status.HTTP_200_OK)
+
+    def get_confidence_scores_for_file_execution(self, request: HttpRequest, file_execution_id: str) -> Response:
+        """Get confidence scores for a file execution.
+        
+        Args:
+            request: HTTP request
+            file_execution_id: File execution ID to get confidence scores for
+            
+        Returns:
+            Response with confidence scores list
+        """
+        try:
+            # Query PromptStudioOutputManager for confidence scores related to this file execution
+            # The file_execution_id should be stored in document_manager field or related metadata
+            outputs = PromptStudioOutputManager.objects.filter(
+                document_manager__document_id=file_execution_id
+            ).exclude(
+                confidence_data__isnull=True
+            )
+            
+            confidence_scores = []
+            for output in outputs:
+                if output.confidence_data and "overall_confidence" in output.confidence_data:
+                    confidence_scores.append(output.confidence_data["overall_confidence"])
+            
+            return Response({
+                "confidence_scores": confidence_scores,
+                "count": len(confidence_scores)
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error retrieving confidence scores for file_execution_id {file_execution_id}: {e}")
+            return Response({
+                "confidence_scores": [],
+                "count": 0,
+                "error": str(e)
+            }, status=status.HTTP_200_OK)

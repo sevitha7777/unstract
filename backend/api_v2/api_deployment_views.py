@@ -44,6 +44,25 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def _aggregate_confidence(results: list[dict]) -> float | None:
+    """Aggregate confidence scores from multiple file results.
+    
+    Args:
+        results: List of file execution results
+        
+    Returns:
+        Average confidence score or None if no scores found
+    """
+    scores = []
+    for item in results or []:
+        result = item.get("result") or {}
+        # Look for _confidence directly in the result (added by workers)
+        score = result.get("_confidence")
+        if isinstance(score, (int, float)):
+            scores.append(score)
+    return round(sum(scores) / len(scores), 3) if scores else None
+
+
 class DeploymentExecution(views.APIView):
     def initialize_request(self, request: Request, *args: Any, **kwargs: Any) -> Request:
         """To remove csrf request for public API.
@@ -155,10 +174,14 @@ class DeploymentExecution(views.APIView):
         if response.result_acknowledged:
             response_status = status.HTTP_406_NOT_ACCEPTABLE
             response.result = "Result already acknowledged"
+        # Calculate overall confidence from individual file results
+        overall_confidence = _aggregate_confidence(response.result)
+        
         return Response(
             data={
                 "status": response.execution_status,
                 "message": response.result,
+                "overall_confidence": overall_confidence,
             },
             status=response_status,
         )

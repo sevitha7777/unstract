@@ -1531,6 +1531,33 @@ class InternalAPIClient(CachedAPIClientMixin):
             )
             return None
 
+    def get_prompt_confidence_scores(
+        self, file_execution_id: str, organization_id: str | None = None
+    ) -> list[float] | None:
+        """Get prompt confidence scores for a file execution.
+
+        Args:
+            file_execution_id: File execution ID to get confidence scores for
+            organization_id: Optional organization ID override
+
+        Returns:
+            List of confidence scores from individual prompts, or None if not found
+        """
+        try:
+            response = self._make_request(
+                method=HTTPMethod.GET,
+                endpoint=f"v1/prompt-studio/confidence/{file_execution_id}/",
+                organization_id=organization_id,
+            )
+            
+            if response and "confidence_scores" in response:
+                return response["confidence_scores"]
+            return None
+            
+        except Exception as e:
+            logger.debug(f"Could not retrieve confidence scores for {file_execution_id}: {e}")
+            return None
+
     # Export all classes and exceptions for backward compatibility
     # =============================
     # CACHE MANAGEMENT UTILITIES

@@ -652,8 +652,43 @@ class WorkerDestinationConnector:
                     f"(from workflow start: {workflow_start_time:.6f} to now: {current_time:.6f})"
                 )
 
-            # Note: document_id retrieval for prompt-level confidence is not available in current API client
-            # Field-level confidence calculation will still work through ConfidenceCalculator
+            # Add confidence scores to result if available
+            if result and not error:
+                try:
+                    from shared.utils.confidence_calculator import ConfidenceCalculator
+                    
+                    # DEBUG: Log metadata contents to see what's available
+                    logger.info(f"CONFIDENCE_DEBUG: Metadata keys: {list(metadata.keys()) if metadata else 'None'}")
+                    if metadata:
+                        logger.info(f"CONFIDENCE_DEBUG: Has confidence_data: {'confidence_data' in metadata}")
+                        if "confidence_data" in metadata:
+                            logger.info(f"CONFIDENCE_DEBUG: Confidence data: {metadata['confidence_data']}")
+                    
+                    # Get confidence scores from metadata (generated during prompt execution)
+                    confidence_scores = []
+                    if metadata and "confidence_data" in metadata:
+                        # Extract confidence scores from metadata
+                        confidence_data = metadata["confidence_data"]
+                        logger.info(f"CONFIDENCE_DEBUG: Processing confidence_data with keys: {list(confidence_data.keys())}")
+                        for prompt_key, conf_data in confidence_data.items():
+                            logger.info(f"CONFIDENCE_DEBUG: Prompt {prompt_key} confidence data: {conf_data}")
+                            if isinstance(conf_data, dict) and "overall_confidence" in conf_data:
+                                confidence_scores.append(conf_data["overall_confidence"])
+                                logger.info(f"CONFIDENCE_DEBUG: Added confidence score {conf_data['overall_confidence']} for prompt {prompt_key}")
+                        logger.info(f"Retrieved {len(confidence_scores)} confidence scores from execution metadata")
+                    else:
+                        logger.info("CONFIDENCE_DEBUG: No confidence_data found in metadata")
+                    
+                    # If confidence scores found, aggregate them
+                    if confidence_scores:
+                        calculator = ConfidenceCalculator()
+                        result = calculator.add_confidence_to_result(result, confidence_scores)
+                        logger.info(f"Added aggregate confidence from {len(confidence_scores)} prompts")
+                    else:
+                        logger.info("CONFIDENCE_DEBUG: No confidence scores to aggregate")
+                    
+                except Exception as conf_error:
+                    logger.error(f"CONFIDENCE_DEBUG: Error processing confidence scores: {conf_error}")
 
             # Use APIResultCacheManager for consistent caching behavior
             api_cache_manager = get_api_cache_manager()

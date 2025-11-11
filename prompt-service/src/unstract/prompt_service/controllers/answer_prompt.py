@@ -473,6 +473,9 @@ def prompt_processor() -> Any:
                     answer = AnswerPromptService.run_completion(
                         llm=llm,
                         prompt=prompt,
+                        metadata=metadata,
+                        prompt_key=f"{output[PSKeys.NAME]}_number_extraction",
+                        prompt_type=PSKeys.TEXT,
                     )
                     try:
                         structured_output[output[PSKeys.NAME]] = float(answer)
@@ -506,6 +509,9 @@ def prompt_processor() -> Any:
                     answer = AnswerPromptService.run_completion(
                         llm=llm,
                         prompt=prompt,
+                        metadata=metadata,
+                        prompt_key=f"{output[PSKeys.NAME]}_email_extraction",
+                        prompt_type=PSKeys.TEXT,
                     )
                     structured_output[output[PSKeys.NAME]] = answer
             elif output[PSKeys.TYPE] == PSKeys.DATE:
@@ -519,6 +525,9 @@ def prompt_processor() -> Any:
                     answer = AnswerPromptService.run_completion(
                         llm=llm,
                         prompt=prompt,
+                        metadata=metadata,
+                        prompt_key=f"{output[PSKeys.NAME]}_date_extraction",
+                        prompt_type=PSKeys.TEXT,
                     )
                     structured_output[output[PSKeys.NAME]] = answer
 
@@ -533,6 +542,9 @@ def prompt_processor() -> Any:
                     answer = AnswerPromptService.run_completion(
                         llm=llm,
                         prompt=prompt,
+                        metadata=metadata,
+                        prompt_key=f"{output[PSKeys.NAME]}_boolean_extraction",
+                        prompt_type=PSKeys.TEXT,
                     )
                     if answer.lower() == "yes":
                         structured_output[output[PSKeys.NAME]] = True
@@ -743,6 +755,44 @@ def prompt_processor() -> Any:
         "Execution complete",
     )
     metadata = UsageHelper.query_usage_metadata(token=platform_key, metadata=metadata)
+    
+    # Calculate confidence scores for each prompt
+    from unstract.prompt_service.utils.confidence_calculator import ConfidenceCalculator
+    
+    confidence_data = {}
+    for output in prompts:
+        prompt_name = output[PSKeys.NAME]
+        if prompt_name in structured_output:
+            # Get the output for this prompt
+            prompt_output = structured_output[prompt_name]
+            prompt_type = output.get(PSKeys.TYPE, PSKeys.TEXT)
+            
+            # Get context for this prompt if available
+            prompt_context = metadata.get(PSKeys.CONTEXT, {}).get(prompt_name, [])
+            context_text = "\n".join(prompt_context) if prompt_context else None
+            
+            # Get token usage for this prompt if available
+            prompt_metrics = metrics.get(prompt_name, {})
+            extraction_llm_metrics = prompt_metrics.get("extraction_llm", {})
+            token_usage = extraction_llm_metrics.get("token_usage", {})
+            
+            # Calculate confidence for this prompt
+            confidence_result = ConfidenceCalculator.calculate_confidence(
+                output=str(prompt_output) if prompt_output is not None else "",
+                prompt_type=prompt_type,
+                context=context_text,
+                token_usage=token_usage
+            )
+            
+            confidence_data[prompt_name] = confidence_result
+    
+    # Add confidence data to metadata
+    if confidence_data:
+        metadata[PSKeys.CONFIDENCE_DATA] = confidence_data
+        app.logger.info(f"Including confidence data in response: {len(confidence_data)} prompts")
+    else:
+        app.logger.info("No confidence data calculated")
+    
     response = {
         PSKeys.METADATA: metadata,
         PSKeys.OUTPUT: structured_output,

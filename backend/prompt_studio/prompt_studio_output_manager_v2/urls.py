@@ -7,6 +7,9 @@ prompt_doc_list = PromptStudioOutputView.as_view({"get": "list"})
 get_output_for_tool_default = PromptStudioOutputView.as_view(
     {"get": "get_output_for_tool_default"}
 )
+get_confidence_scores = PromptStudioOutputView.as_view(
+    {"get": "get_confidence_scores_for_file_execution"}
+)
 
 urlpatterns = format_suffix_patterns(
     [
@@ -15,6 +18,11 @@ urlpatterns = format_suffix_patterns(
             "prompt-output/prompt-default-profile/",
             get_output_for_tool_default,
             name="prompt-default-profile-outputs",
+        ),
+        path(
+            "confidence/<str:file_execution_id>/",
+            get_confidence_scores,
+            name="confidence-scores",
         ),
     ]
 )

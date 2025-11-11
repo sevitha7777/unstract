@@ -36,6 +36,37 @@ class APIResultCacheManager:
         """Initialize the API result cache manager."""
         self._cache_utils = None
 
+    def _extract_field_confidence_scores(self, result: dict[str, Any]) -> list[float]:
+        """Extract field-level confidence scores from result data.
+        
+        Args:
+            result: Result dictionary to extract confidence from
+            
+        Returns:
+            List of confidence scores found in the result
+        """
+        confidence_scores = []
+        
+        if not isinstance(result, dict):
+            return confidence_scores
+            
+        for key, value in result.items():
+            # Look for field_name_confidence pattern
+            if key.endswith('_confidence') and isinstance(value, (int, float)):
+                if 0 <= value <= 1:
+                    confidence_scores.append(float(value))
+            
+            # Look for nested confidence in field objects
+            elif isinstance(value, dict):
+                if 'confidence' in value and isinstance(value['confidence'], (int, float)):
+                    if 0 <= value['confidence'] <= 1:
+                        confidence_scores.append(float(value['confidence']))
+                elif 'confidence_score' in value and isinstance(value['confidence_score'], (int, float)):
+                    if 0 <= value['confidence_score'] <= 1:
+                        confidence_scores.append(float(value['confidence_score']))
+        
+        return confidence_scores
+
     @property
     def cache_utils(self) -> WorkerResultCacheUtils:
         """Get cache utils instance (lazy initialization)."""
@@ -159,7 +190,11 @@ class APIResultCacheManager:
         # Add confidence scores to result if available
         result = file_processing_result.result
         if result and not file_processing_result.error:
-            result = ConfidenceCalculator.add_confidence_to_result(result)
+            # Extract field-level confidence scores from result
+            confidence_scores = self._extract_field_confidence_scores(result)
+            if confidence_scores:
+                calculator = ConfidenceCalculator()
+                result = calculator.add_confidence_to_result(result, confidence_scores)
 
         # Merge metadata from result and additional metadata
         result_metadata = file_processing_result.metadata or {}
@@ -320,7 +355,10 @@ class APIResultCacheManager:
             # Add confidence scores to result if available
             if result and not error:
                 # First try field-level confidence calculation
-                result = ConfidenceCalculator.add_confidence_to_result(result)
+                confidence_scores = self._extract_field_confidence_scores(result)
+                if confidence_scores:
+                    calculator = ConfidenceCalculator()
+                    result = calculator.add_confidence_to_result(result, confidence_scores)
                 
                 # If no field-level confidence found, try prompt-level confidence from database
                 if '_confidence' not in result and metadata:
